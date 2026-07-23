@@ -85,5 +85,13 @@ public class ChatModelVo implements Serializable {
     @ExcelProperty(value = "备注")
     private String remark;
 
+    /**
+     * 创建时间
+     */
+    @ExcelProperty(value = "创建时间")
+    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private java.util.Date createTime;
+
 }
 

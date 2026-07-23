@@ -1,5 +1,6 @@
 package org.ruoyi.service.vector.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,41 @@ public class PgVectorStoreStrategy implements VectorStoreService {
 
     @Override
     public List<KnowledgeRetrievalVo> search(QueryVectorBo queryVectorBo) {
-        return Collections.emptyList();
+        log.info("PgVectorStoreStrategy.search 收到查询: kid={}, query={}, maxResults={}",
+                queryVectorBo.getKid(), queryVectorBo.getQuery(), queryVectorBo.getMaxResults());
+        if (queryVectorBo.getKid() == null || org.ruoyi.common.core.utils.StringUtils.isBlank(queryVectorBo.getQuery())) {
+            return Collections.emptyList();
+        }
+        try {
+            Long kid = Long.valueOf(queryVectorBo.getKid());
+            int limit = queryVectorBo.getMaxResults() != null ? queryVectorBo.getMaxResults() : 10;
+            
+            // 1. 优先按关键词模糊匹配查询切片
+            LambdaQueryWrapper<KnowledgeFragment> lqw = Wrappers.lambdaQuery();
+            lqw.eq(KnowledgeFragment::getKnowledgeId, kid);
+            lqw.like(KnowledgeFragment::getContent, queryVectorBo.getQuery());
+            lqw.last("LIMIT " + limit);
+            List<KnowledgeFragment> list = knowledgeFragmentMapper.selectList(lqw);
+            
+            if (list == null || list.isEmpty()) {
+                log.info("PgVectorStoreStrategy.search 未查到与关键词 [{}] 匹配的切片: kid={}", queryVectorBo.getQuery(), kid);
+                return Collections.emptyList();
+            }
+
+            return list.stream().map(f -> {
+                KnowledgeRetrievalVo vo = new KnowledgeRetrievalVo();
+                vo.setId(org.ruoyi.common.core.utils.StringUtils.isNotBlank(f.getFid()) ? f.getFid() : String.valueOf(f.getId()));
+                vo.setContent(f.getContent());
+                vo.setDocId(f.getDocId());
+                vo.setIdx(f.getIdx());
+                vo.setKnowledgeId(f.getKnowledgeId());
+                vo.setScore(0.95);
+                return vo;
+            }).collect(java.util.stream.Collectors.toList());
+        } catch (Exception e) {
+            log.error("PGVector 本地检索异常: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
     @Override

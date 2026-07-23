@@ -77,6 +77,20 @@ public class ChatModelBo extends BaseEntity {
      */
     private String remark;
 
+    /**
+     * 创建时间
+     */
+    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private java.util.Date createTime;
+
+    /**
+     * 更新时间
+     */
+    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private java.util.Date updateTime;
+
     @Override
     public Map<String, Object> getParams() {
         Map<String, Object> params = super.getParams();

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ruoyi.common.chat.domain.bo.chat.ChatModelBo;
 import org.ruoyi.common.chat.domain.vo.chat.ChatModelVo;
 import org.ruoyi.common.chat.service.chat.IChatModelService;
 import org.ruoyi.common.core.utils.MapstructUtils;
@@ -13,10 +14,12 @@ import org.ruoyi.common.mybatis.core.page.PageQuery;
 import org.ruoyi.common.mybatis.core.page.TableDataInfo;
 import org.ruoyi.domain.bo.knowledge.KnowledgeFragmentBo;
 import org.ruoyi.domain.bo.vector.QueryVectorBo;
+import org.ruoyi.domain.entity.knowledge.KnowledgeAttach;
 import org.ruoyi.domain.entity.knowledge.KnowledgeFragment;
 import org.ruoyi.domain.vo.knowledge.KnowledgeFragmentVo;
 import org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo;
 import org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo;
+import org.ruoyi.mapper.knowledge.KnowledgeAttachMapper;
 import org.ruoyi.mapper.knowledge.KnowledgeFragmentMapper;
 import org.ruoyi.service.knowledge.IKnowledgeFragmentService;
 import org.ruoyi.service.knowledge.IKnowledgeInfoService;
@@ -37,6 +40,7 @@ import java.util.*;
 public class KnowledgeFragmentServiceImpl implements IKnowledgeFragmentService {
 
     private final KnowledgeFragmentMapper baseMapper;
+    private final KnowledgeAttachMapper knowledgeAttachMapper;
     private final IKnowledgeInfoService knowledgeInfoService;
     private final IChatModelService chatModelService;
     private final KnowledgeRetrievalService knowledgeRetrievalService;
@@ -161,27 +165,48 @@ public class KnowledgeFragmentServiceImpl implements IKnowledgeFragmentService {
      */
     @Override
     public List<KnowledgeRetrievalVo> retrieval(KnowledgeFragmentBo bo) {
+        log.info("KnowledgeFragmentServiceImpl.retrieval 收到检索请求: kid={}, query={}, threshold={}, topK={}",
+                bo.getKnowledgeId(), bo.getQuery(), bo.getThreshold(), bo.getTopK());
         if (bo.getKnowledgeId() == null || StringUtils.isBlank(bo.getQuery())) {
+            log.warn("retrieval 参数校验未通过: kid 或 query 为空");
             return new ArrayList<>();
         }
 
         // 1. 获取知识库及模型配置（为了获取 API Key/Host 等模型参数）
         KnowledgeInfoVo knowledgeInfoVo = knowledgeInfoService.queryById(bo.getKnowledgeId());
         if (knowledgeInfoVo == null) {
+            log.warn("retrieval 无法查到指定知识库记录, kid={}", bo.getKnowledgeId());
             return new ArrayList<>();
         }
 
         ChatModelVo chatModel = chatModelService.selectModelByName(knowledgeInfoVo.getEmbeddingModel());
         if (chatModel == null) {
-            log.warn("未找到对应的向量模型配置: {}", knowledgeInfoVo.getEmbeddingModel());
-            return new ArrayList<>();
+            log.warn("未找到对应的向量模型配置: {}, 自动启用默认规则配置", knowledgeInfoVo.getEmbeddingModel());
+            chatModel = new ChatModelVo();
+            chatModel.setModelName(knowledgeInfoVo.getEmbeddingModel());
+            chatModel.setProviderCode("zhipu");
+        }
+
+        String apiKey = chatModel.getApiKey();
+        if (StringUtils.isBlank(apiKey) && StringUtils.isNotBlank(chatModel.getProviderCode())) {
+            ChatModelBo siblingBo = new ChatModelBo();
+            siblingBo.setProviderCode(chatModel.getProviderCode());
+            List<ChatModelVo> siblings = chatModelService.queryList(siblingBo);
+            if (siblings != null) {
+                for (ChatModelVo s : siblings) {
+                    if (StringUtils.isNotBlank(s.getApiKey())) {
+                        apiKey = s.getApiKey();
+                        break;
+                    }
+                }
+            }
         }
 
         // 2. 构造通用的参数对象
         QueryVectorBo queryVectorBo = new QueryVectorBo();
         queryVectorBo.setQuery(bo.getQuery());
         queryVectorBo.setKid(String.valueOf(bo.getKnowledgeId()));
-        queryVectorBo.setApiKey(chatModel.getApiKey());
+        queryVectorBo.setApiKey(apiKey);
         queryVectorBo.setBaseUrl(chatModel.getApiHost());
         queryVectorBo.setEmbeddingModelName(knowledgeInfoVo.getEmbeddingModel());
         queryVectorBo.setVectorModelName(knowledgeInfoVo.getVectorModel());
@@ -199,6 +224,23 @@ public class KnowledgeFragmentServiceImpl implements IKnowledgeFragmentService {
         queryVectorBo.setRerankScoreThreshold(bo.getThreshold() != null ? bo.getThreshold() : knowledgeInfoVo.getRerankScoreThreshold());
 
         // 3. 执行统一检索
-        return knowledgeRetrievalService.retrieve(queryVectorBo);
+        List<KnowledgeRetrievalVo> list = knowledgeRetrievalService.retrieve(queryVectorBo);
+        if (list != null && !list.isEmpty()) {
+            Set<String> docIds = list.stream().map(KnowledgeRetrievalVo::getDocId).filter(StringUtils::isNotBlank).collect(java.util.stream.Collectors.toSet());
+            if (!docIds.isEmpty()) {
+                LambdaQueryWrapper<KnowledgeAttach> attachLqw = Wrappers.lambdaQuery();
+                attachLqw.in(KnowledgeAttach::getDocId, docIds);
+                List<KnowledgeAttach> attaches = knowledgeAttachMapper.selectList(attachLqw);
+                if (attaches != null && !attaches.isEmpty()) {
+                    Map<String, String> docNameMap = attaches.stream().collect(java.util.stream.Collectors.toMap(KnowledgeAttach::getDocId, KnowledgeAttach::getName, (v1, v2) -> v1));
+                    list.forEach(vo -> {
+                        if (StringUtils.isNotBlank(vo.getDocId())) {
+                            vo.setSourceName(docNameMap.get(vo.getDocId()));
+                        }
+                    });
+                }
+            }
+        }
+        return list;
     }
 }

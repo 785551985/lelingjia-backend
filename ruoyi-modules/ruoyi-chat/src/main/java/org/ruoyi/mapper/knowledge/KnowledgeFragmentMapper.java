@@ -37,8 +37,7 @@ public interface KnowledgeFragmentMapper extends BaseMapperPlus<KnowledgeFragmen
             "SELECT id, fid, doc_id AS docId, content, idx, knowledge_id AS knowledgeId " +
             "FROM knowledge_fragment " +
             "WHERE knowledge_id = #{knowledgeId} " +
-            "AND MATCH (content) AGAINST (#{query} IN NATURAL LANGUAGE MODE) " +
-            "ORDER BY MATCH (content) AGAINST (#{query} IN NATURAL LANGUAGE MODE) DESC " +
+            "AND content ILIKE '%' || #{query} || '%' " +
             "LIMIT #{limit}" +
             "</script>")
     List<KnowledgeFragmentVo> searchByKeyword(@Param("knowledgeId") Long knowledgeId, @Param("query") String query, @Param("limit") Integer limit);

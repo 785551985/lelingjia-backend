@@ -59,7 +59,7 @@ public class KnowledgeRetrievalServiceImpl implements KnowledgeRetrievalService 
     public List<KnowledgeRetrievalVo> retrieve(QueryVectorBo queryVectorBo) {
         String cacheKey = cacheKey(queryVectorBo);
         CacheEntry cached = retrievalCache.get(cacheKey);
-        if (cached != null && System.currentTimeMillis() - cached.createdAt < CACHE_TTL_MILLIS) {
+        if (cached != null && cached.results != null && !cached.results.isEmpty() && System.currentTimeMillis() - cached.createdAt < CACHE_TTL_MILLIS) {
             return copyResults(cached.results);
         }
         log.info("开始知识库检索, kid={}, query={}", queryVectorBo.getKid(), queryVectorBo.getQuery());
@@ -285,6 +285,9 @@ public class KnowledgeRetrievalServiceImpl implements KnowledgeRetrievalService 
     }
 
     private void cache(String key, List<KnowledgeRetrievalVo> results) {
+        if (results == null || results.isEmpty()) {
+            return;
+        }
         if (retrievalCache.size() >= CACHE_MAX_ENTRIES) {
             long now = System.currentTimeMillis();
             retrievalCache.entrySet().removeIf(e -> now - e.getValue().createdAt >= CACHE_TTL_MILLIS);
