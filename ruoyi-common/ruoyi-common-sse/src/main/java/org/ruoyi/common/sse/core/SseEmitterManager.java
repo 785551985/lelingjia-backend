@@ -49,38 +49,25 @@ public class SseEmitterManager {
      */
     public SseEmitter connect(Long userId, String token) {
         // 从 USER_TOKEN_EMITTERS 中获取或创建当前用户的 SseEmitter 映射表（ConcurrentHashMap）
-        // 每个用户可以有多个 SSE 连接，通过 token 进行区分
         Map<String, SseEmitter> emitters = USER_TOKEN_EMITTERS.computeIfAbsent(userId, k -> new ConcurrentHashMap<>());
 
-        // 关闭已存在的SseEmitter，防止超过最大连接数
-        SseEmitter oldEmitter = emitters.remove(token);
-        if (oldEmitter != null) {
-            oldEmitter.complete();
-        }
+        // 生成唯一连接 Key，避免 GET /resource/sse 与 POST /chat/send 因共享相同 tokenValue 而互相销毁对方的连接
+        String uniqueKey = token + "_" + System.nanoTime() + "_" + java.util.concurrent.ThreadLocalRandom.current().nextInt(1000, 9999);
 
         // 创建一个新的 SseEmitter 实例，超时时间设置为一天 避免连接之后直接关闭浏览器导致连接停滞
         SseEmitter emitter = new SseEmitter(86400000L);
 
-        emitters.put(token, emitter);
+        emitters.put(uniqueKey, emitter);
 
-        // 当 emitter 完成、超时或发生错误时，从映射表中移除对应的 token
+        // 当 emitter 完成、超时或发生错误时，从映射表中移除对应的 uniqueKey
         emitter.onCompletion(() -> {
-            SseEmitter remove = emitters.remove(token);
-            if (remove != null) {
-               remove.complete();
-            }
+            emitters.remove(uniqueKey);
         });
         emitter.onTimeout(() -> {
-            SseEmitter remove = emitters.remove(token);
-            if (remove != null) {
-                remove.complete();
-            }
+            emitters.remove(uniqueKey);
         });
         emitter.onError((e) -> {
-            SseEmitter remove = emitters.remove(token);
-            if (remove != null) {
-                remove.complete();
-            }
+            emitters.remove(uniqueKey);
         });
 
         try {
@@ -88,7 +75,7 @@ public class SseEmitterManager {
             emitter.send(SseEmitter.event().comment("connected"));
         } catch (IOException e) {
             // 如果发送消息失败，则从映射表中移除 emitter
-            emitters.remove(token);
+            emitters.remove(uniqueKey);
         }
         return emitter;
     }
@@ -105,14 +92,17 @@ public class SseEmitterManager {
         }
         Map<String, SseEmitter> emitters = USER_TOKEN_EMITTERS.get(userId);
         if (MapUtil.isNotEmpty(emitters)) {
-            try {
-                SseEmitter sseEmitter = emitters.get(token);
-                sseEmitter.send(SseEmitter.event().comment("disconnected"));
-                //sseEmitter.complete();
-            } catch (Exception exception) {
-                log.error(exception.getMessage());
-            }
-            emitters.remove(token);
+            emitters.entrySet().removeIf(entry -> {
+                if (entry.getKey().startsWith(token)) {
+                    try {
+                        entry.getValue().send(SseEmitter.event().comment("disconnected"));
+                    } catch (Exception exception) {
+                        log.error(exception.getMessage());
+                    }
+                    return true;
+                }
+                return false;
+            });
         } else {
             USER_TOKEN_EMITTERS.remove(userId);
         }

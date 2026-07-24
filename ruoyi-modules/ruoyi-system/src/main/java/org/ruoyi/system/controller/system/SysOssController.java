@@ -1,6 +1,7 @@
 package org.ruoyi.system.controller.system;
 
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.util.ObjectUtil;
 import org.ruoyi.common.core.domain.R;
@@ -96,14 +97,25 @@ public class SysOssController extends BaseController {
     }
 
     /**
-     * 下载OSS对象
+     * 下载OSS对象（适用于所有已登录员工预览与查看企业文件附件）
      *
      * @param ossId OSS对象ID
      */
-    @SaCheckPermission("system:oss:download")
+    @SaCheckLogin
     @GetMapping("/download/{ossId}")
     public void download(@PathVariable Long ossId, HttpServletResponse response) throws IOException {
         ossService.download(ossId, response);
+    }
+
+    /**
+     * 在线受控预览OSS对象（inline 模式，供前台受控带水印预览）
+     *
+     * @param ossId OSS对象ID
+     */
+    @SaCheckLogin
+    @GetMapping("/preview/{ossId}")
+    public void preview(@PathVariable Long ossId, HttpServletResponse response) throws IOException {
+        ossService.preview(ossId, response);
     }
 
     /**

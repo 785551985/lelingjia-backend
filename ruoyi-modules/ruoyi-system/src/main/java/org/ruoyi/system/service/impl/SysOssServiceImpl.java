@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.ruoyi.common.core.constant.CacheNames;
 import org.ruoyi.common.core.domain.dto.OssDTO;
 import org.ruoyi.common.core.exception.ServiceException;
@@ -61,6 +62,7 @@ import java.util.Map;
  *
  * @author Lion Li
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class SysOssServiceImpl implements ISysOssService, OssService {
@@ -208,6 +210,30 @@ public class SysOssServiceImpl implements ISysOssService, OssService {
     }
 
     @Override
+    public void preview(Long ossId, HttpServletResponse response) throws IOException {
+        SysOssVo sysOss = SpringUtils.getAopProxy(this).getById(ossId);
+        if (ObjectUtil.isNull(sysOss)) {
+            throw new ServiceException("文件数据不存在!");
+        }
+        String suffix = sysOss.getFileSuffix();
+        String contentType = ContentTypeUtil.getContentType(suffix, null);
+        if (StringUtils.isBlank(contentType)) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+        response.setHeader("Content-Disposition", "inline; filename=" + FileUtils.percentEncode(sysOss.getOriginalName()));
+        if (StringUtils.equalsIgnoreCase(suffix, ".pdf") || StringUtils.equalsIgnoreCase(suffix, "pdf")
+                || StringUtils.containsIgnoreCase(contentType, "pdf")) {
+            response.setContentType("application/pdf");
+        } else if (contentType != null && (contentType.startsWith("image/") || contentType.startsWith("video/"))) {
+            response.setContentType(contentType);
+        } else {
+            response.setContentType(contentType + "; charset=UTF-8");
+        }
+        OssClient storage = OssFactory.instance(sysOss.getService());
+        storage.download(sysOss.getFileName(), response.getOutputStream(), response::setContentLengthLong);
+    }
+
+    @Override
     public void downloadFile(Long ossId, HttpServletResponse response) throws IOException {
         download(ossId, response);
     }
@@ -244,8 +270,15 @@ public class SysOssServiceImpl implements ISysOssService, OssService {
      * @return 上传成功后的 OssDTO 对象，包含文件信息
      * @throws ServiceException 如果上传过程中发生异常，则抛出 ServiceException 异常
      */
+    @Override
     public OssDTO uploadFile(MultipartFile file) {
         SysOssVo sysOssVo = upload(file);
+        return BeanUtil.toBean(sysOssVo, OssDTO.class);
+    }
+
+    @Override
+    public OssDTO uploadFile(MultipartFile file, String configKey, String prefix) {
+        SysOssVo sysOssVo = uploadToStore(file, configKey, prefix);
         return BeanUtil.toBean(sysOssVo, OssDTO.class);
     }
 
@@ -349,6 +382,39 @@ public class SysOssServiceImpl implements ISysOssService, OssService {
         return buildResultEntity(originalfileName, suffix, configKey, uploadResult, ext1, storage);
     }
 
+    /**
+     * 上传 MultipartFile 到指定 OSS 配置的指定前缀路径
+     * 供知识库等需要自定义存储桶和路径前缀的场景使用
+     *
+     * @param file      要上传的文件
+     * @param configKey OSS 配置 key（如 "minio-kb"）
+     * @param prefix    自定义路径前缀（如 "000000/103/5001"）
+     * @return SysOssVo
+     */
+    @Override
+    public SysOssVo uploadToStore(MultipartFile file, String configKey, String prefix) {
+        String originalfileName = file.getOriginalFilename();
+        String suffix = StringUtils.substring(originalfileName, originalfileName.lastIndexOf("."), originalfileName.length());
+        OssClient storage = OssFactory.instance(configKey);
+        UploadResult uploadResult;
+        try {
+            String objectKey = storage.getPath(prefix, suffix);
+            String contentType = ContentTypeUtil.getContentType(suffix, file.getContentType());
+            uploadResult = storage.upload(
+                new java.io.ByteArrayInputStream(file.getBytes()),
+                objectKey,
+                file.getSize(),
+                contentType
+            );
+        } catch (IOException e) {
+            throw new ServiceException(e.getMessage());
+        }
+        SysOssExt ext = new SysOssExt();
+        ext.setFileSize(file.getSize());
+        ext.setContentType(file.getContentType());
+        return buildResultEntity(originalfileName, suffix, configKey, uploadResult, ext);
+    }
+
     @NotNull
     private SysOssVo buildResultEntity(String originalfileName, String suffix, String configKey,
                                        UploadResult uploadResult, SysOssExt ext1, OssClient storage) {
@@ -421,8 +487,13 @@ public class SysOssServiceImpl implements ISysOssService, OssService {
         }
         List<SysOss> list = baseMapper.selectByIds(ids);
         for (SysOss sysOss : list) {
-            OssClient storage = OssFactory.instance(sysOss.getService());
-            storage.delete(sysOss.getUrl());
+            try {
+                OssClient storage = OssFactory.instance(sysOss.getService());
+                String objectKey = StringUtils.isNotBlank(sysOss.getFileName()) ? sysOss.getFileName() : sysOss.getUrl();
+                storage.delete(objectKey);
+            } catch (Exception e) {
+                log.warn("物理删除 OSS 文件异常，继续清理数据库记录: ossId={}, msg={}", sysOss.getOssId(), e.getMessage());
+            }
         }
         return baseMapper.deleteByIds(ids) > 0;
     }

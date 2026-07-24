@@ -17,16 +17,28 @@ public final class SkillsPathResolver {
     }
 
     /**
-     * skills 目录相对项目根目录的路径
-     */
-    private static final String SKILLS_RELATIVE_PATH = "ruoyi-admin/src/main/resources/skills";
-
-    /**
-     * 返回磁盘 skills 目录的绝对路径
+     * 返回磁盘 skills 目录的绝对路径，按场景顺位检测：
+     * 1. {user.dir}/src/main/resources/skills（当在 ruoyi-admin 子模块或 IDEA 中运行）
+     * 2. {user.dir}/ruoyi-admin/src/main/resources/skills（当在项目根目录运行）
      */
     public static Path resolveSkillsPath() {
         String userDir = System.getProperty("user.dir");
-        return Path.of(userDir, SKILLS_RELATIVE_PATH);
+        
+        Path directPath = Path.of(userDir, "src/main/resources/skills");
+        if (java.nio.file.Files.exists(directPath)) {
+            return directPath;
+        }
+
+        Path subModulePath = Path.of(userDir, "ruoyi-admin", "src", "main", "resources", "skills");
+        if (java.nio.file.Files.exists(subModulePath)) {
+            return subModulePath;
+        }
+
+        try {
+            java.nio.file.Files.createDirectories(directPath);
+        } catch (Exception ignored) {
+        }
+        return directPath;
     }
 
 }

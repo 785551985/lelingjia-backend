@@ -2242,7 +2242,7 @@ CREATE TABLE sys_dept  (
 -- ----------------------------
 -- Records of sys_dept
 -- ----------------------------
-INSERT INTO sys_dept VALUES (100, '000000', 0, '0', '熊猫科技', NULL, 0, NULL, '15888888888', 'xxx@qq.com', '0', '0', 103, 1, '2026-02-03 05:14:38', 1, '2026-02-06 00:38:24');
+INSERT INTO sys_dept VALUES (100, '000000', 0, '0', '乐龄家大健康科技', NULL, 0, NULL, '15888888888', 'xxx@qq.com', '0', '0', 103, 1, '2026-02-03 05:14:38', 1, '2026-02-06 00:38:24');
 INSERT INTO sys_dept VALUES (101, '000000', 100, '0,100', '深圳总公司', NULL, 1, NULL, '15888888888', 'xxx@qq.com', '0', '0', 103, 1, '2026-02-03 05:14:38', NULL, NULL);
 INSERT INTO sys_dept VALUES (102, '000000', 100, '0,100', '长沙分公司', NULL, 2, NULL, '15888888888', 'xxx@qq.com', '0', '0', 103, 1, '2026-02-03 05:14:38', NULL, NULL);
 INSERT INTO sys_dept VALUES (103, '000000', 101, '0,100,101', '研发部门', NULL, 1, 1, '15888888888', 'xxx@qq.com', '0', '0', 103, 1, '2026-02-03 05:14:39', NULL, NULL);
@@ -3189,7 +3189,7 @@ CREATE TABLE sys_tenant  (
 -- ----------------------------
 -- Records of sys_tenant
 -- ----------------------------
-INSERT INTO sys_tenant VALUES (1, '000000', '管理组', '15888888888', '熊猫科技有限公司', NULL, NULL, '多租户通用后台管理管理系统', NULL, NULL, 2018611998196109314, NULL, -1, '0', '0', 103, 1, '2026-02-03 05:14:38', NULL, NULL);
+INSERT INTO sys_tenant VALUES (1, '000000', '管理组', '15888888888', '乐龄家大健康科技有限公司', NULL, NULL, '多租户通用后台管理管理系统', NULL, NULL, 2018611998196109314, NULL, -1, '0', '0', 103, 1, '2026-02-03 05:14:38', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_tenant_package

@@ -87,9 +87,6 @@ public class AgentServiceImpl implements IAgentService {
         if (!StringUtils.hasText(entity.getEnableThinking())) {
             entity.setEnableThinking("0");
         }
-        entity.setMcpToolIds(JsonUtils.toJsonString(bo.getMcpToolIds()));
-        entity.setSkillNames(JsonUtils.toJsonString(bo.getSkillNames()));
-        entity.setKnowledgeIds(JsonUtils.toJsonString(bo.getKnowledgeIds()));
         return baseMapper.insert(entity) > 0;
     }
 
@@ -97,9 +94,6 @@ public class AgentServiceImpl implements IAgentService {
     @Transactional
     public Boolean updateByBo(AgentBo bo) {
         Agent entity = MapstructUtils.convert(bo, Agent.class);
-        entity.setMcpToolIds(JsonUtils.toJsonString(bo.getMcpToolIds()));
-        entity.setSkillNames(JsonUtils.toJsonString(bo.getSkillNames()));
-        entity.setKnowledgeIds(JsonUtils.toJsonString(bo.getKnowledgeIds()));
         return baseMapper.updateById(entity) > 0;
     }
 
@@ -202,16 +196,40 @@ public class AgentServiceImpl implements IAgentService {
         if (!StringUtils.hasText(json)) {
             return new ArrayList<>();
         }
-        List<Long> list = JsonUtils.parseArray(json, Long.class);
-        return list == null ? new ArrayList<>() : list;
+        String cleanJson = json.trim();
+        if (cleanJson.startsWith("\"") && cleanJson.endsWith("\"")) {
+            try {
+                cleanJson = JsonUtils.parseObject(cleanJson, String.class);
+            } catch (Exception ignored) {}
+        }
+        cleanJson = cleanJson.replace("\\\"", "\"");
+        try {
+            List<Long> list = JsonUtils.parseArray(cleanJson, Long.class);
+            return list == null ? new ArrayList<>() : list;
+        } catch (Exception e) {
+            log.warn("解析 Long 数组 JSON 失败: json={}, err={}", json, e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     private List<String> parseStringArray(String json) {
         if (!StringUtils.hasText(json)) {
             return new ArrayList<>();
         }
-        List<String> list = JsonUtils.parseArray(json, String.class);
-        return list == null ? new ArrayList<>() : list;
+        String cleanJson = json.trim();
+        if (cleanJson.startsWith("\"") && cleanJson.endsWith("\"")) {
+            try {
+                cleanJson = JsonUtils.parseObject(cleanJson, String.class);
+            } catch (Exception ignored) {}
+        }
+        cleanJson = cleanJson.replace("\\\"", "\"");
+        try {
+            List<String> list = JsonUtils.parseArray(cleanJson, String.class);
+            return list == null ? new ArrayList<>() : list;
+        } catch (Exception e) {
+            log.warn("解析 String 数组 JSON 失败: json={}, err={}", json, e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     private LambdaQueryWrapper<Agent> buildQueryWrapper(AgentBo bo) {

@@ -37,8 +37,30 @@ public interface KnowledgeFragmentMapper extends BaseMapperPlus<KnowledgeFragmen
             "SELECT id, fid, doc_id AS docId, content, idx, knowledge_id AS knowledgeId " +
             "FROM knowledge_fragment " +
             "WHERE knowledge_id = #{knowledgeId} " +
-            "AND content ILIKE '%' || #{query} || '%' " +
+            "<if test='keywords != null and keywords.size() > 0'>" +
+            "  <foreach collection='keywords' item='kw'>" +
+            "    AND content ILIKE '%' || #{kw} || '%' " +
+            "  </foreach>" +
+            "</if>" +
             "LIMIT #{limit}" +
             "</script>")
-    List<KnowledgeFragmentVo> searchByKeyword(@Param("knowledgeId") Long knowledgeId, @Param("query") String query, @Param("limit") Integer limit);
+    List<KnowledgeFragmentVo> searchByKeywords(@Param("knowledgeId") Long knowledgeId, @Param("keywords") List<String> keywords, @Param("limit") Integer limit);
+
+    default List<KnowledgeFragmentVo> searchByKeyword(Long knowledgeId, String query, Integer limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        List<String> keywords = new java.util.ArrayList<>();
+        String trimmed = query.trim();
+        if (trimmed.contains(" ")) {
+            for (String s : trimmed.split("\\s+")) {
+                if (!s.trim().isEmpty()) {
+                    keywords.add(s.trim());
+                }
+            }
+        } else {
+            keywords.add(trimmed);
+        }
+        return searchByKeywords(knowledgeId, keywords, limit);
+    }
 }

@@ -1,0 +1,458 @@
+- generic [active] [ref=f12e1]:
+  - link "欢迎进入 百度一下，你就知道，盲人用户进入读屏幕模式请按快捷键Ctrl加Alt加R；阅读详细操作说明请按快捷键Ctrl加Alt加问号键。":
+    - /url: javascript:void(0)
+  - generic [ref=f12e2]:
+    - generic [ref=f12e4]:
+      - generic [ref=f12e5]:
+        - generic:
+          - link [ref=f12e6] [cursor=pointer]:
+            - /url: /
+            - img "到百度首页" [ref=f12e7]
+          - generic [ref=f12e10]:
+            - textbox [ref=f12e12]: 锟斤拷锟斤拷夜锟斤拷锟
+            - button "百度一下" [ref=f12e43] [cursor=pointer]
+      - generic [ref=f12e45]:
+        - link "百度首页" [ref=f12e46] [cursor=pointer]:
+          - /url: /
+        - link "设置" [ref=f12e47] [cursor=pointer]:
+          - /url: javascript:;
+        - link "登录" [ref=f12e48] [cursor=pointer]:
+          - /url: https://passport.baidu.com/v2/?login&tpl=mn&u=http%3A%2F%2Fwww.baidu.com%2F
+    - generic [ref=f12e51]:
+      - link [ref=f12e52] [cursor=pointer]:
+        - /url: https://chat.baidu.com/search?word=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B9%EF%BF%BD%EF%BF%BD%EF%BF%BD&dyTabStr=MTIsMCwzLDEsMiwxMyw3LDYsNSw5&pd=csaitab&setype=csaitab&extParamsJson=%7B%22enter_type%22%3A%22search_a_tab%22%2C%22sa%22%3A%22vs_tab%22%2C%22apagelid%22%3A%2214821990876469320856%22%2C%22ori_lid%22%3A%2214821990876469320856%22%7D
+      - generic [ref=f12e54]: 网页
+      - link "图片" [ref=f12e55] [cursor=pointer]:
+        - /url: http://image.baidu.com/i?tn=baiduimage&ps=1&ct=201326592&lm=-1&cl=2&nc=1&ie=utf-8&lid=cdb24a2c0008dc98&dyTabStr=MTIsMCwzLDEsMiwxMyw3LDYsNSw5&word=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B9%EF%BF%BD%EF%BF%BD%EF%BF%BD
+      - link "资讯" [ref=f12e56] [cursor=pointer]:
+        - /url: https://www.baidu.com/s?rtt=1&bsst=1&cl=2&tn=news&ie=utf-8&word=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B9%EF%BF%BD%EF%BF%BD%EF%BF%BD
+      - link "视频" [ref=f12e57] [cursor=pointer]:
+        - /url: /sf/vsearch?pd=video&tn=vsearch&lid=cdb24a2c0008dc98&ie=utf-8&wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_spt=7&rsv_bp=1&f=8&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM
+      - link "笔记" [ref=f12e58] [cursor=pointer]:
+        - /url: https://www.baidu.com/s?pd=note&rpf=pc&dyTabStr=MTIsMCwzLDEsMiwxMyw3LDYsNSw5&word=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B9%EF%BF%BD%EF%BF%BD%EF%BF%BD
+      - link "地图" [ref=f12e59] [cursor=pointer]:
+        - /url: https://map.baidu.com/?newmap=1&ie=utf-8&from=pstab&s=s%26wd%3D%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F
+      - link "贴吧" [ref=f12e60] [cursor=pointer]:
+        - /url: http://tieba.baidu.com/f?fr=wwwt&ie=utf-8&dyTabStr=MTIsMCwzLDEsMiwxMyw3LDYsNSw5&kw=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B9%EF%BF%BD%EF%BF%BD%EF%BF%BD
+      - link "文库" [ref=f12e61] [cursor=pointer]:
+        - /url: http://wenku.baidu.com/search?lm=0&od=0&ie=utf-8&dyTabStr=MTIsMCwzLDEsMiwxMyw3LDYsNSw5&word=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B9%EF%BF%BD%EF%BF%BD%EF%BF%BD
+      - link "更多" [ref=f12e62] [cursor=pointer]:
+        - /url: http://www.baidu.com/more/
+      - generic [ref=f12e63] [cursor=pointer]: 搜索工具
+    - generic [ref=f12e64]:
+      - generic [ref=f12e65]:
+        - table [ref=f12e67]:
+          - rowgroup [ref=f12e68]:
+            - row [ref=f12e69]:
+              - cell "相关搜索  锟斤拷锟是什么意思  犭勹扌冫亠彳亍辶廴冖厂厶讠卩阝  锟斤拷锟斤拷锟斤拷锟斤拷鄹锟  锟斤拷锟斤拷锟斤拷用语音  锟是什么金属有什么作用  锟斤拷乱码怎么转化    换一换 热搜榜 杭州榜 民生榜 财经榜  不断开创基础教育高质量发展新局面 1 王虹：很幸运在合适时间遇见合适的人 2 腾讯晒317万年终奖员工因泄密被辞退 3 中国汽车加速全球化布局 4 歼-20披上了“金甲战衣” 新 5 下铺空间是否公用 12306回应 热 6 故宫下周一免费开放 7 数学之外的邓煜：知乎大神、动漫、诗人 新 8 中纪委一日连打三“虎” 热 9 工龄有多值钱 10 王楚钦2-1逆转李天阳 新 11 “汛”息随手转发 竟然差点闯祸 12 70岁爷爷给4岁孙子自制玩具走红 13 王虹获奖 别再说寒门难出贵子 14 马克龙打电话祝贺王虹获奖 热 15 国务院成立六蓝水库溃坝调查评估组 新" [ref=f12e70]:
+                - generic [ref=f12e71]:
+                  - generic [ref=f12e77]:
+                    - generic [ref=f12e78]: 相关搜索
+                    - generic [ref=f12e80]:
+                      - link " 锟斤拷锟是什么意思" [ref=f12e83] [cursor=pointer]:
+                        - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%98%AF%E4%BB%80%E4%B9%88%E6%84%8F%E6%80%9D&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=91fdSDr8q5LNgnZHalmYmtkkQHRKFAzn20g4khkHtkIUq940rwqSI%2FJv5ac&rfqid=cdb24a2c0008dc98&rsv_dl=0_prs_28616_1&rq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsf=101631202
+                        - generic [ref=f12e84]:
+                          - generic [ref=f12e85]: 
+                          - generic [ref=f12e86]: 锟斤拷锟是什么意思
+                      - link " 犭勹扌冫亠彳亍辶廴冖厂厶讠卩阝" [ref=f12e89] [cursor=pointer]:
+                        - /url: /s?wd=%E7%8A%AD%E5%8B%B9%E6%89%8C%E5%86%AB%E4%BA%A0%E5%BD%B3%E4%BA%8D%E8%BE%B6%E5%BB%B4%E5%86%96%E5%8E%82%E5%8E%B6%E8%AE%A0%E5%8D%A9%E9%98%9D&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=91fdSDr8q5LNgnZHalmYmtkkQHRKFAzn20g4khkHtkIUq940rwqSI%2FJv5ac&rfqid=cdb24a2c0008dc98&rsv_dl=0_prs_28616_2&rq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsf=101636703
+                        - generic [ref=f12e90]:
+                          - generic [ref=f12e91]: 
+                          - generic [ref=f12e92]: 犭勹扌冫亠彳亍辶廴冖厂厶讠卩阝
+                      - link " 锟斤拷锟斤拷锟斤拷锟斤拷鄹锟" [ref=f12e95] [cursor=pointer]:
+                        - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%84%B9%E9%94%9F&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=7068I17JfWpS%2B6HeDSO6KThdqh%2Fa8YEfRatcMV400NjVyCr3o5PkQrOs8tY&rfqid=cdb24a2c0008dc98&rsv_dl=0_prs_28616_3&rq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsf=101631203
+                        - generic [ref=f12e96]:
+                          - generic [ref=f12e97]: 
+                          - generic [ref=f12e98]: 锟斤拷锟斤拷锟斤拷锟斤拷鄹锟
+                      - link " 锟斤拷锟斤拷锟斤拷用语音" [ref=f12e101] [cursor=pointer]:
+                        - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E7%94%A8%E8%AF%AD%E9%9F%B3&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=7068I17JfWpS%2B6HeDSO6KThdqh%2Fa8YEfRatcMV400NjVyCr3o5PkQrOs8tY&rfqid=cdb24a2c0008dc98&rsv_dl=0_prs_28616_4&rq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsf=101636703
+                        - generic [ref=f12e102]:
+                          - generic [ref=f12e103]: 
+                          - generic [ref=f12e104]: 锟斤拷锟斤拷锟斤拷用语音
+                      - link " 锟是什么金属有什么作用" [ref=f12e107] [cursor=pointer]:
+                        - /url: /s?wd=%E9%94%9F%E6%98%AF%E4%BB%80%E4%B9%88%E9%87%91%E5%B1%9E%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=7068I17JfWpS%2B6HeDSO6KThdqh%2Fa8YEfRatcMV400NjVyCr3o5PkQrOs8tY&rfqid=cdb24a2c0008dc98&rsv_dl=0_prs_28616_5&rq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsf=101636703
+                        - generic [ref=f12e108]:
+                          - generic [ref=f12e109]: 
+                          - generic [ref=f12e110]: 锟是什么金属有什么作用
+                      - link " 锟斤拷乱码怎么转化" [ref=f12e113] [cursor=pointer]:
+                        - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E4%B9%B1%E7%A0%81%E6%80%8E%E4%B9%88%E8%BD%AC%E5%8C%96&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=7068I17JfWpS%2B6HeDSO6KThdqh%2Fa8YEfRatcMV400NjVyCr3o5PkQrOs8tY&rfqid=cdb24a2c0008dc98&rsv_dl=0_prs_28616_6&rq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsf=101636703
+                        - generic [ref=f12e114]:
+                          - generic [ref=f12e115]: 
+                          - generic [ref=f12e116]: 锟斤拷乱码怎么转化
+                  - generic [ref=f12e120]:
+                    - generic "百度热搜" [ref=f12e121]:
+                      - link " " [ref=f12e122] [cursor=pointer]:
+                        - /url: https://top.baidu.com/board?platform=pc&sa=pcindex_a_right
+                        - generic [ref=f12e123]: 
+                        - generic [ref=f12e124]: 
+                      - link " 换一换" [ref=f12e126] [cursor=pointer]:
+                        - /url: javascript:void(0);
+                        - generic [ref=f12e127]: 
+                        - text: 换一换
+                    - generic [ref=f12e128]:
+                      - generic [ref=f12e129] [cursor=pointer]: 热搜榜
+                      - generic [ref=f12e130] [cursor=pointer]: 杭州榜
+                      - generic [ref=f12e131] [cursor=pointer]: 民生榜
+                      - generic [ref=f12e132] [cursor=pointer]: 财经榜
+                    - generic [ref=f12e134]:
+                      - generic [ref=f12e136]:
+                        - generic [ref=f12e137]: 
+                        - link "不断开创基础教育高质量发展新局面" [ref=f12e139] [cursor=pointer]:
+                          - /url: /s?wd=%E4%B8%8D%E6%96%AD%E5%BC%80%E5%88%9B%E5%9F%BA%E7%A1%80%E6%95%99%E8%82%B2%E9%AB%98%E8%B4%A8%E9%87%8F%E5%8F%91%E5%B1%95%E6%96%B0%E5%B1%80%E9%9D%A2&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=7068I17JfWpS%2B6HeDSO6KThdqh%2Fa8YEfRatcMV400NjVyCr3o5PkQrOs8tY&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_1&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e141]:
+                        - generic [ref=f12e142]: "1"
+                        - link "王虹：很幸运在合适时间遇见合适的人" [ref=f12e143] [cursor=pointer]:
+                          - /url: /s?wd=%E7%8E%8B%E8%99%B9%EF%BC%9A%E5%BE%88%E5%B9%B8%E8%BF%90%E5%9C%A8%E5%90%88%E9%80%82%E6%97%B6%E9%97%B4%E9%81%87%E8%A7%81%E5%90%88%E9%80%82%E7%9A%84%E4%BA%BA&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=7068I17JfWpS%2B6HeDSO6KThdqh%2Fa8YEfRatcMV400NjVyCr3o5PkQrOs8tY&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_2&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e145]:
+                        - generic [ref=f12e146]: "2"
+                        - link "腾讯晒317万年终奖员工因泄密被辞退" [ref=f12e147] [cursor=pointer]:
+                          - /url: /s?wd=%E8%85%BE%E8%AE%AF%E6%99%92317%E4%B8%87%E5%B9%B4%E7%BB%88%E5%A5%96%E5%91%98%E5%B7%A5%E5%9B%A0%E6%B3%84%E5%AF%86%E8%A2%AB%E8%BE%9E%E9%80%80&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=7068I17JfWpS%2B6HeDSO6KThdqh%2Fa8YEfRatcMV400NjVyCr3o5PkQrOs8tY&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_3&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e149]:
+                        - generic [ref=f12e150]: "3"
+                        - link "中国汽车加速全球化布局" [ref=f12e151] [cursor=pointer]:
+                          - /url: /s?wd=%E4%B8%AD%E5%9B%BD%E6%B1%BD%E8%BD%A6%E5%8A%A0%E9%80%9F%E5%85%A8%E7%90%83%E5%8C%96%E5%B8%83%E5%B1%80&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_4&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e153]:
+                        - generic [ref=f12e154]: "4"
+                        - link "歼-20披上了“金甲战衣”" [ref=f12e155] [cursor=pointer]:
+                          - /url: /s?wd=%E6%AD%BC-20%E6%8A%AB%E4%B8%8A%E4%BA%86%E2%80%9C%E9%87%91%E7%94%B2%E6%88%98%E8%A1%A3%E2%80%9D&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_5&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                        - generic [ref=f12e156]: 新
+                      - generic [ref=f12e158]:
+                        - generic [ref=f12e159]: "5"
+                        - link "下铺空间是否公用 12306回应" [ref=f12e160] [cursor=pointer]:
+                          - /url: /s?wd=%E4%B8%8B%E9%93%BA%E7%A9%BA%E9%97%B4%E6%98%AF%E5%90%A6%E5%85%AC%E7%94%A8%2012306%E5%9B%9E%E5%BA%94&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_6&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                        - generic [ref=f12e161]: 热
+                      - generic [ref=f12e163]:
+                        - generic [ref=f12e164]: "6"
+                        - link "故宫下周一免费开放" [ref=f12e165] [cursor=pointer]:
+                          - /url: /s?wd=%E6%95%85%E5%AE%AB%E4%B8%8B%E5%91%A8%E4%B8%80%E5%85%8D%E8%B4%B9%E5%BC%80%E6%94%BE&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_7&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e167]:
+                        - generic [ref=f12e168]: "7"
+                        - link "数学之外的邓煜：知乎大神、动漫、诗人" [ref=f12e169] [cursor=pointer]:
+                          - /url: /s?wd=%E6%95%B0%E5%AD%A6%E4%B9%8B%E5%A4%96%E7%9A%84%E9%82%93%E7%85%9C%EF%BC%9A%E7%9F%A5%E4%B9%8E%E5%A4%A7%E7%A5%9E%E3%80%81%E5%8A%A8%E6%BC%AB%E3%80%81%E8%AF%97%E4%BA%BA&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_8&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                        - generic [ref=f12e170]: 新
+                      - generic [ref=f12e172]:
+                        - generic [ref=f12e173]: "8"
+                        - link "中纪委一日连打三“虎”" [ref=f12e174] [cursor=pointer]:
+                          - /url: /s?wd=%E4%B8%AD%E7%BA%AA%E5%A7%94%E4%B8%80%E6%97%A5%E8%BF%9E%E6%89%93%E4%B8%89%E2%80%9C%E8%99%8E%E2%80%9D&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_9&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                        - generic [ref=f12e175]: 热
+                      - generic [ref=f12e177]:
+                        - generic [ref=f12e178]: "9"
+                        - link "工龄有多值钱" [ref=f12e179] [cursor=pointer]:
+                          - /url: /s?wd=%E5%B7%A5%E9%BE%84%E6%9C%89%E5%A4%9A%E5%80%BC%E9%92%B1&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_10&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e181]:
+                        - generic [ref=f12e182]: "10"
+                        - link "王楚钦2-1逆转李天阳" [ref=f12e183] [cursor=pointer]:
+                          - /url: /s?wd=%E7%8E%8B%E6%A5%9A%E9%92%A62-1%E9%80%86%E8%BD%AC%E6%9D%8E%E5%A4%A9%E9%98%B3&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_11&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                        - generic [ref=f12e184]: 新
+                      - generic [ref=f12e186]:
+                        - generic [ref=f12e187]: "11"
+                        - link "“汛”息随手转发 竟然差点闯祸" [ref=f12e188] [cursor=pointer]:
+                          - /url: /s?wd=%E2%80%9C%E6%B1%9B%E2%80%9D%E6%81%AF%E9%9A%8F%E6%89%8B%E8%BD%AC%E5%8F%91%20%E7%AB%9F%E7%84%B6%E5%B7%AE%E7%82%B9%E9%97%AF%E7%A5%B8&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_12&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e190]:
+                        - generic [ref=f12e191]: "12"
+                        - link "70岁爷爷给4岁孙子自制玩具走红" [ref=f12e192] [cursor=pointer]:
+                          - /url: /s?wd=70%E5%B2%81%E7%88%B7%E7%88%B7%E7%BB%994%E5%B2%81%E5%AD%99%E5%AD%90%E8%87%AA%E5%88%B6%E7%8E%A9%E5%85%B7%E8%B5%B0%E7%BA%A2&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_13&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e194]:
+                        - generic [ref=f12e195]: "13"
+                        - link "王虹获奖 别再说寒门难出贵子" [ref=f12e196] [cursor=pointer]:
+                          - /url: /s?wd=%E7%8E%8B%E8%99%B9%E8%8E%B7%E5%A5%96%20%E5%88%AB%E5%86%8D%E8%AF%B4%E5%AF%92%E9%97%A8%E9%9A%BE%E5%87%BA%E8%B4%B5%E5%AD%90&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_14&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                      - generic [ref=f12e198]:
+                        - generic [ref=f12e199]: "14"
+                        - link "马克龙打电话祝贺王虹获奖" [ref=f12e200] [cursor=pointer]:
+                          - /url: /s?wd=%E9%A9%AC%E5%85%8B%E9%BE%99%E6%89%93%E7%94%B5%E8%AF%9D%E7%A5%9D%E8%B4%BA%E7%8E%8B%E8%99%B9%E8%8E%B7%E5%A5%96&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_1_15_15&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                        - generic [ref=f12e201]: 热
+                      - generic [ref=f12e203]:
+                        - generic [ref=f12e204]: "15"
+                        - link "国务院成立六蓝水库溃坝调查评估组" [ref=f12e205] [cursor=pointer]:
+                          - /url: /s?wd=%E5%9B%BD%E5%8A%A1%E9%99%A2%E6%88%90%E7%AB%8B%E5%85%AD%E8%93%9D%E6%B0%B4%E5%BA%93%E6%BA%83%E5%9D%9D%E8%B0%83%E6%9F%A5%E8%AF%84%E4%BC%B0%E7%BB%84&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=0bbb9JHiFFLCCoxbtUFG%2BsvCvtKa3g16WsRFbTo37wumfRW9%2FdZd9iH0%2FEo&rqid=cdb24a2c0008dc98&rsf=9ec96cecb52ca1d2ef3bb4feea542c03_16_30_16&rsv_dl=0_right_fyb_pchot_20811&sa=0_right_fyb_pchot_20811
+                        - generic [ref=f12e206]: 新
+        - generic [ref=f12e207]:
+          - generic [ref=f12e210]:
+            - generic [ref=f12e211]: 
+            - text: 以下包含
+            - link "锟斤拷锟斤拷锟斤拷锟" [ref=f12e212] [cursor=pointer]:
+              - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&usm=1&ie=utf-8&f=12&rsp=0&rqlang=cn&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=a0981cor%2Frb4nF8%2FuVyGYHHOnNaKRRoJBEK6p23ocF3PS%2FEhA%2Bh4mrLeezc
+            - text: 的搜索结果，仍然搜索：
+            - link "锟斤拷锟斤拷夜锟斤拷锟" [ref=f12e213] [cursor=pointer]:
+              - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&usm=1&ie=utf-8&f=13&nojc=1&rqlang=cn&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=80d1%2F95jr8uHPxP0ogPiBVEqYmQC8WAWATui7oTNUZNtX09J1bgCrsrICCg
+          - generic [ref=f12e215]:
+            - heading [level=3] [ref=f12e216]:
+              - link [ref=f12e217] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=GQd6OfHu5GxaX7QtEixHFJ7APd-HeA4XZj4Ao5XmMmOoRK75Wsam4UsDKwdp_6vKdJL8B6O9bXuIKK7kSz3mOweXxkxJ0llKZGUExFqaQra
+                - paragraph [ref=f12e220]:
+                  - generic [ref=f12e222]:
+                    - emphasis [ref=f12e223]: 锟斤拷
+                    - text: (乱码字符) - 百度百科
+            - generic [ref=f12e227]:
+              - generic [ref=f12e228]: 
+              - generic [ref=f12e235]:
+                - paragraph [ref=f12e239]:
+                  - generic [ref=f12e241]:
+                    - emphasis [ref=f12e242]: 锟斤拷
+                    - text: ，是一串经常在搜索引擎页面和其他网站上看到的乱码字符组合，乱码源于字符编码转换问题。当Unicode字符无法正确表示时，会使用替换字符U+FFFD(�)来代替。该字符的UTF-8编码为0xEFBFBD。当该字节序列被错误地按照GBK编码解读时，GBK编码系统会将这些字节两两组合，分别...
+                  - generic [ref=f12e244]:
+                    - link "详情" [ref=f12e245] [cursor=pointer]:
+                      - /url: http://www.baidu.com/link?url=GQd6OfHu5GxaX7QtEixHFJ7APd-HeA4XZj4Ao5XmMmOoRK75Wsam4UsDKwdp_6vKdJL8B6O9bXuIKK7kSz3mOweXxkxJ0llKZGUExFqaQra
+                    - link "" [ref=f12e246] [cursor=pointer]:
+                      - /url: http://www.baidu.com/link?url=GQd6OfHu5GxaX7QtEixHFJ7APd-HeA4XZj4Ao5XmMmOoRK75Wsam4UsDKwdp_6vKdJL8B6O9bXuIKK7kSz3mOweXxkxJ0llKZGUExFqaQra
+                - generic [ref=f12e250]:
+                  - link "基本含义" [ref=f12e252] [cursor=pointer]:
+                    - /url: http://www.baidu.com/link?url=crvM76z63F13DidALtU-xpkJxkkqAojhF9-zX8nbzNrMH-_XabwMQPXuXgd0sCdF4htVABIgVbfsBHY5eETc_KYeJ31MvvOTA97JGZDD_wdpmf22aY6lCygKM4CVbHWJ
+                  - link "原因" [ref=f12e255] [cursor=pointer]:
+                    - /url: http://www.baidu.com/link?url=crvM76z63F13DidALtU-xpkJxkkqAojhF9-zX8nbzNrMH-_XabwMQPXuXgd0sCdF4htVABIgVbfsBHY5eETc_KYeJ31MvvOTA97JGZDD_wdplVZdB5fn7mj2XujQqErk
+                  - link "产生机制" [ref=f12e258] [cursor=pointer]:
+                    - /url: http://www.baidu.com/link?url=crvM76z63F13DidALtU-xpkJxkkqAojhF9-zX8nbzNrMH-_XabwMQPXuXgd0sCdF4htVABIgVbfsBHY5eETc_KYeJ31MvvOTA97JGZDD_wbTKG8_cV1lTlYw_x8gc2QW
+                  - link "示例" [ref=f12e261] [cursor=pointer]:
+                    - /url: http://www.baidu.com/link?url=crvM76z63F13DidALtU-xpkJxkkqAojhF9-zX8nbzNrMH-_XabwMQPXuXgd0sCdF4htVABIgVbfsBHY5eETc_KYeJ31MvvOTA97JGZDD_wcHxoiTPLFskOA7pO47lyZB
+            - generic [ref=f12e263]:
+              - link "百度百科" [ref=f12e266] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=GQd6OfHu5GxaX7QtEixHFJ7APd-HeA4XZj4Ao5XmMmOoRK75Wsam4UsDKwdp_6vKdJL8B6O9bXuIKK7kSz3mOweXxkxJ0llKZGUExFqaQra
+              - generic [ref=f12e268] [cursor=pointer]: 
+          - generic [ref=f12e273]:
+            - heading [level=3] [ref=f12e276]:
+              - link [ref=f12e277] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=GQd6OfHu5GxaX7QtEixHF2oLvkg88Z4tflJCZyrw1fU8z-1yGEaT-AtKyg2c4z_Hilc2X0w3vrrc-HhZcZ4LsK
+                - generic [ref=f12e279]:
+                  - emphasis [ref=f12e280]: 锟斤拷锟斤拷
+                  - text: 锟斤拷锟斤拷锟斤拷 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷...
+            - generic [ref=f12e286]:
+              - text: 锟揭癸拷司锟斤拷2006锟斤拷投锟斤拷锟斤拷
+              - emphasis [ref=f12e287]: 锟斤拷锟斤拷锟
+              - text: 矫憋拷锟秸★拷锟斤拷投锟斤拷之前锟斤拷锟揭癸拷司锟斤拷一锟斤拷印锟斤拷锟斤拷锟斤拷锟角凤
+              - emphasis [ref=f12e288]: 拷夜锟
+              - text: 剿撅拷锟斤拷锟斤拷9.2锟斤拷锟斤拷元锟斤拷占压锟斤拷锟斤拷锟角碉拷锟斤拷锟斤拷锟酵诧拷锟斤拷锟斤拷锟节对伙拷锟斤拷锟阶凤拷夭锟斤拷锟较o拷锟街 憋拷锟斤拷泄锟...
+            - link "中国出口信用保险公司" [ref=f12e293] [cursor=pointer]:
+              - /url: http://www.baidu.com/link?url=GQd6OfHu5GxaX7QtEixHF2oLvkg88Z4tflJCZyrw1fU8z-1yGEaT-AtKyg2c4z_Hilc2X0w3vrrc-HhZcZ4LsK
+              - generic [ref=f12e295]: 
+          - generic [ref=f12e300]:
+            - heading [level=3] [ref=f12e303]:
+              - link [ref=f12e304] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=fT3FABViL4e0_XZrXZaekVTqkyiHSuRUugO8G81vexDzZMjHS156LDkkv451z_v1xFV1O9DetthM-1g8L2iqsw9Hfcc7H1_XiqnpqDb9m6m
+                - generic [ref=f12e306]:
+                  - emphasis [ref=f12e307]: 锟斤拷
+                  - text: 是什么? - 知乎
+            - generic [ref=f12e312]:
+              - text: 2019年6月9日
+              - generic [ref=f12e313]:
+                - emphasis [ref=f12e314]: 锟斤拷锟斤拷锟斤拷锟斤拷锟
+                - text: �03锟斤拷…錕，錕吾也。
+            - link "头像 知乎" [ref=f12e319] [cursor=pointer]:
+              - /url: http://www.baidu.com/link?url=fT3FABViL4e0_XZrXZaekVTqkyiHSuRUugO8G81vexDzZMjHS156LDkkv451z_v1xFV1O9DetthM-1g8L2iqsw9Hfcc7H1_XiqnpqDb9m6m
+              - img "头像" [ref=f12e322]
+              - generic [ref=f12e323]: 知乎
+              - generic [ref=f12e324]: 
+          - generic [ref=f12e329]:
+            - heading [level=3] [ref=f12e332]:
+              - link [ref=f12e333] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=B1R0Jah6BK_JM5hIIH11x4EH7nbXUKH4Zbn5cGRemaeqA7WccjXpRofY6GogD6SZrgUfNaWW3noXXZMa0OaXNlF9Wapnca6HZCQ_5p2IU33
+                - generic [ref=f12e335]:
+                  - text: 锟斤拷业锟斤拷锟皆弟碉拷
+                  - emphasis [ref=f12e336]: 锟斤拷锟斤拷
+                  - text: 说锟侥伙拷 - 百度知道
+            - generic [ref=f12e337]: "1个回答 - 回答时间: 2014年4月13日"
+            - generic [ref=f12e343]:
+              - text: "最佳答案:"
+              - generic [ref=f12e344]:
+                - text: “锟斤拷业锟斤拷锟皆弟碉拷
+                - emphasis [ref=f12e345]: 锟斤拷锟斤拷
+                - text: 说锟侥伙拷”的答案是锟斤拷业锟斤拷锟皆弟碉拷锟斤拷锟斤拷说锟侥伙拷
+            - link "更多关于锟斤拷锟斤拷夜锟斤拷锟的问题>>" [ref=f12e349] [cursor=pointer]:
+              - /url: http://zhidao.baidu.com/q?ct=17&pn=0&tn=ikaslist&rn=10&word=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&dyTabStr=MTIsMCwzLDEsMiwxMyw3LDYsNSw5
+            - link "头像 百度知道" [ref=f12e354] [cursor=pointer]:
+              - /url: http://www.baidu.com/link?url=B1R0Jah6BK_JM5hIIH11x4EH7nbXUKH4Zbn5cGRemaeqA7WccjXpRofY6GogD6SZrgUfNaWW3noXXZMa0OaXNlF9Wapnca6HZCQ_5p2IU33
+              - img "头像" [ref=f12e357]
+              - generic [ref=f12e358]: 百度知道
+              - generic [ref=f12e359]: 
+          - generic [ref=f12e362]:
+            - generic [ref=f12e363]: 大家还在搜
+            - generic [ref=f12e364]:
+              - link "锟斤拷锟是什么意思" [ref=f12e365] [cursor=pointer]:
+                - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%98%AF%E4%BB%80%E4%B9%88%E6%84%8F%E6%80%9D&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=dbf5%2Fij%2FMrGVc1Lq7kRSuuqdOLgMQeTGcoYwCvaSk2OBZpdLoLg6Uc4miyE&rsf=101631202&rsv_dl=0_prs_28608_1
+              - link "犭勹扌冫亠彳亍辶廴冖厂厶讠卩阝" [ref=f12e368] [cursor=pointer]:
+                - /url: /s?wd=%E7%8A%AD%E5%8B%B9%E6%89%8C%E5%86%AB%E4%BA%A0%E5%BD%B3%E4%BA%8D%E8%BE%B6%E5%BB%B4%E5%86%96%E5%8E%82%E5%8E%B6%E8%AE%A0%E5%8D%A9%E9%98%9D&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=dbf5%2Fij%2FMrGVc1Lq7kRSuuqdOLgMQeTGcoYwCvaSk2OBZpdLoLg6Uc4miyE&rsf=101636703&rsv_dl=0_prs_28608_2
+              - link "锟斤拷锟斤拷锟斤拷锟斤拷鄹锟" [ref=f12e371] [cursor=pointer]:
+                - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%84%B9%E9%94%9F&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=dbf5%2Fij%2FMrGVc1Lq7kRSuuqdOLgMQeTGcoYwCvaSk2OBZpdLoLg6Uc4miyE&rsf=101631203&rsv_dl=0_prs_28608_3
+              - link "锟斤拷锟斤拷锟斤拷用语音" [ref=f12e374] [cursor=pointer]:
+                - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E7%94%A8%E8%AF%AD%E9%9F%B3&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=e667Pk5JRIafEM%2BKjiZ7QinYtM2qCPmc9NdXQibj53rYA8gS4j5lAXsOIcI&rsf=101636703&rsv_dl=0_prs_28608_4
+              - link "锟是什么金属有什么作用" [ref=f12e377] [cursor=pointer]:
+                - /url: /s?wd=%E9%94%9F%E6%98%AF%E4%BB%80%E4%B9%88%E9%87%91%E5%B1%9E%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=e667Pk5JRIafEM%2BKjiZ7QinYtM2qCPmc9NdXQibj53rYA8gS4j5lAXsOIcI&rsf=101636703&rsv_dl=0_prs_28608_5
+              - link "锟斤拷乱码怎么转化" [ref=f12e380] [cursor=pointer]:
+                - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E4%B9%B1%E7%A0%81%E6%80%8E%E4%B9%88%E8%BD%AC%E5%8C%96&usm=1&ie=utf-8&rsv_pq=cdb24a2c0008dc98&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&rsv_t=e667Pk5JRIafEM%2BKjiZ7QinYtM2qCPmc9NdXQibj53rYA8gS4j5lAXsOIcI&rsf=101636703&rsv_dl=0_prs_28608_6
+          - generic [ref=f12e386]:
+            - heading [level=3] [ref=f12e389]:
+              - link [ref=f12e390] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=HHS9ZS4C3P-jxTXDAzy-jx4wBq8EoXfJyOOBRIHzU8U0npPhosYzbRNWTzflJ6PcBuWPEhQCSZ0T0FrIjBEHwlwHiCK82wAEoKxoNyNHPqi
+                - generic [ref=f12e392]:
+                  - text: 漫画:如何给女朋友解释什么是“
+                  - emphasis [ref=f12e393]: 锟斤拷
+                  - text: ”? - CSDN
+            - generic [ref=f12e394]:
+              - link [ref=f12e396] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=HHS9ZS4C3P-jxTXDAzy-jx4wBq8EoXfJyOOBRIHzU8U0npPhosYzbRNWTzflJ6PcBuWPEhQCSZ0T0FrIjBEHwlwHiCK82wAEoKxoNyNHPqi
+              - generic [ref=f12e401]:
+                - generic [ref=f12e407]:
+                  - text: 2019年8月30日
+                  - generic [ref=f12e408]:
+                    - text: 就像在计算机领域，我们把一串中文字符通过UTF-8进行编码传输给别人，别人拿到这串文字之后，通过GBK进行解码，得到的内容就会是“锟届瀿锟斤拷雮傡锟斤拷直
+                    - emphasis [ref=f12e409]: 锟斤拷锟
+                    - text: "”，这就是乱码。如以下代码：publicstaticvoidmain(String[] args) throws UnsupportedEncodingException { String s = \"漫话编程！\";byte[] bytes =..."
+                - link "头像 CSDN" [ref=f12e414] [cursor=pointer]:
+                  - /url: http://www.baidu.com/link?url=HHS9ZS4C3P-jxTXDAzy-jx4wBq8EoXfJyOOBRIHzU8U0npPhosYzbRNWTzflJ6PcBuWPEhQCSZ0T0FrIjBEHwlwHiCK82wAEoKxoNyNHPqi
+                  - img "头像" [ref=f12e417]
+                  - generic [ref=f12e418]: CSDN
+                  - generic [ref=f12e419]: 
+          - generic [ref=f12e424]:
+            - heading [level=3] [ref=f12e427]:
+              - link [ref=f12e428] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=B1R0Jah6BK_JM5hIIH11x4EH7nbXUKH4Zbn5cGRemaeqA7WccjXpRofY6GogD6SZkNYiAEE50GtCbYGEOeIbXp_VsdatZhxi4H2Wk3VKt5u
+                - generic [ref=f12e430]:
+                  - text: 那啥,“
+                  - emphasis [ref=f12e431]: 锟斤拷
+                  - text: ”三个字怎么读 - 百度知道
+            - generic [ref=f12e432]: "1个回答 - 回答时间: 2015年8月23日"
+            - generic [ref=f12e438]:
+              - text: "最佳答案:"
+              - generic [ref=f12e439]:
+                - text: kūn jīn kǎo
+                - emphasis [ref=f12e440]: 锟斤拷 锟
+                - text: 拼音：kūn 解释：1. 〔～铻〕古书上记载的山名，所出铁可造剑，因此宝剑也称“锟铻”。亦作“昆吾”。2. （锟）
+            - link "更多关于锟斤拷锟斤拷夜锟斤拷锟的问题>>" [ref=f12e444] [cursor=pointer]:
+              - /url: http://zhidao.baidu.com/q?ct=17&pn=0&tn=ikaslist&rn=10&word=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&dyTabStr=MTIsMCwzLDEsMiwxMyw3LDYsNSw5
+            - link "头像 百度知道" [ref=f12e449] [cursor=pointer]:
+              - /url: http://www.baidu.com/link?url=B1R0Jah6BK_JM5hIIH11x4EH7nbXUKH4Zbn5cGRemaeqA7WccjXpRofY6GogD6SZkNYiAEE50GtCbYGEOeIbXp_VsdatZhxi4H2Wk3VKt5u
+              - img "头像" [ref=f12e452]
+              - generic [ref=f12e453]: 百度知道
+              - generic [ref=f12e454]: 
+          - generic [ref=f12e459]:
+            - generic [ref=f12e461]:
+              - generic [ref=f12e462]: 
+              - heading [level=3] [ref=f12e463]:
+                - link [ref=f12e464] [cursor=pointer]:
+                  - /url: http://www.baidu.com/link?url=B1R0Jah6BK_JM5hIIH11x1MDqADTYLdK-zI706eG0ZuaaT18AVxZ8BK5vy7Q8WT0ypENRTIyAqHnVquuhn1qsyU5PzWarHY6EzdwtUaMupcZaJNYgt_3m_2kzoP1clX-
+                  - generic [ref=f12e466]:
+                    - text: 锟斤拷械锟斤拷图(
+                    - emphasis [ref=f12e467]: 锟斤拷锟斤拷锟斤拷锟
+                    - text: 窖э拷锟斤拷锟斤拷)习锟解集...
+            - generic [ref=f12e468]: "22页 发布时间: 2020年09月22日"
+            - generic [ref=f12e475]:
+              - text: 锟斤拷械锟斤拷图(
+              - emphasis [ref=f12e476]: 锟斤拷锟斤拷锟斤拷锟
+              - text: 窖э拷锟斤拷锟斤拷)习锟解集锟节帮拷锟铰达拷22页PPT
+            - link "百度文库" [ref=f12e481] [cursor=pointer]:
+              - /url: http://www.baidu.com/link?url=B1R0Jah6BK_JM5hIIH11x1MDqADTYLdK-zI706eG0ZuaaT18AVxZ8BK5vy7Q8WT0ypENRTIyAqHnVquuhn1qsyU5PzWarHY6EzdwtUaMupcZaJNYgt_3m_2kzoP1clX-
+              - generic [ref=f12e483]: 
+          - generic [ref=f12e488]:
+            - heading [level=3] [ref=f12e491]:
+              - link [ref=f12e492] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=scdO9MZ7hFLvtR1OkhNWcyGG3zPQFpu4b-xjr4worfmeoRWw5T19ptvPq3W2kQLx
+                - generic [ref=f12e494]:
+                  - text: 锟斤拷欧司锟斤拷 OSRAM锟斤拷聘
+                  - emphasis [ref=f12e495]: 锟斤拷锟斤拷
+                  - text: 职锟斤拷欧司锟斤拷...
+            - generic [ref=f12e496]:
+              - link [ref=f12e498] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=scdO9MZ7hFLvtR1OkhNWcyGG3zPQFpu4b-xjr4worfmeoRWw5T19ptvPq3W2kQLx
+              - generic [ref=f12e503]:
+                - generic [ref=f12e510]:
+                  - text: 职位锟叫憋拷 欧司锟斤拷2017锟斤拷锟斤拷实习锟斤拷训锟斤拷锟斤拷目_锟斤拷锟诫导锟斤拷(
+                  - emphasis [ref=f12e511]: 锟斤拷锟斤拷 锟
+                  - text: ...
+                - link "前程无忧" [ref=f12e516] [cursor=pointer]:
+                  - /url: http://www.baidu.com/link?url=scdO9MZ7hFLvtR1OkhNWcyGG3zPQFpu4b-xjr4worfmeoRWw5T19ptvPq3W2kQLx
+                  - generic [ref=f12e518]: 
+          - generic [ref=f12e523]:
+            - heading [level=3] [ref=f12e526]:
+              - link [ref=f12e527] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=KGRlniGTMnwijwa6QAiE2JvvZbLeLDDy43Gg2FJHK-tSWa0JmzwX9D5UhL2UsmIaRpszCWtupv-ZfyznqIQw5PkNN9aET3APKfOqhIYsrcu
+                - generic [ref=f12e529]:
+                  - text: “
+                  - emphasis [ref=f12e530]: 锟斤拷
+                  - text: ”背后:30年编码战争,一场技术债务的强制催收
+            - generic [ref=f12e531]:
+              - link [ref=f12e533] [cursor=pointer]:
+                - /url: http://www.baidu.com/link?url=KGRlniGTMnwijwa6QAiE2JvvZbLeLDDy43Gg2FJHK-tSWa0JmzwX9D5UhL2UsmIaRpszCWtupv-ZfyznqIQw5PkNN9aET3APKfOqhIYsrcu
+              - generic [ref=f12e538]:
+                - generic [ref=f12e544]:
+                  - text: 2026年6月10日
+                  - generic [ref=f12e545]:
+                    - text: “
+                    - emphasis [ref=f12e546]: 锟斤拷
+                    - text: ”这三个字，已经成为编码战争的标志性遗迹。当UTF-8编码的文本被错误地用GBK解码时，特定字节组合会固定映射到这几个汉字。具体来说，UTF-8的替换字符（U+FFFD）编码为0xEF 0xBF 0xBD，当这三个字节被GBK解码时，0xEF 0xBF对应“锟”，0xBD对应“斤拷”（实际上“拷”是0xBD 0x??组合的一部分...
+                - link "头像 小纯平爱科技" [ref=f12e551] [cursor=pointer]:
+                  - /url: http://www.baidu.com/link?url=KGRlniGTMnwijwa6QAiE2JvvZbLeLDDy43Gg2FJHK-tSWa0JmzwX9D5UhL2UsmIaRpszCWtupv-ZfyznqIQw5PkNN9aET3APKfOqhIYsrcu
+                  - img "头像" [ref=f12e554]
+                  - generic [ref=f12e555]: 小纯平爱科技
+                  - generic [ref=f12e556]: 
+        - generic [ref=f12e560]:
+          - generic [ref=f12e561]: 相关搜索
+          - table [ref=f12e562]:
+            - rowgroup [ref=f12e563]:
+              - row [ref=f12e564]:
+                - cell [ref=f12e565]:
+                  - link "锟斤拷锟是什么意思" [ref=f12e566] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%98%AF%E4%BB%80%E4%B9%88%E6%84%8F%E6%80%9D&tn=baidu&rsf=101631202&rsp=0&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_1
+                - cell [ref=f12e569]:
+                  - link "锟斤拷锟斤拷锟斤拷锟斤拷鄹锟" [ref=f12e570] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%84%B9%E9%94%9F&tn=baidu&rsf=101631203&rsp=1&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_2
+              - row [ref=f12e573]:
+                - cell [ref=f12e574]:
+                  - link "犭勹扌冫亠彳亍辶廴冖厂厶讠卩阝" [ref=f12e575] [cursor=pointer]:
+                    - /url: /s?wd=%E7%8A%AD%E5%8B%B9%E6%89%8C%E5%86%AB%E4%BA%A0%E5%BD%B3%E4%BA%8D%E8%BE%B6%E5%BB%B4%E5%86%96%E5%8E%82%E5%8E%B6%E8%AE%A0%E5%8D%A9%E9%98%9D&tn=baidu&rsf=101636703&rsp=2&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_3
+                - cell [ref=f12e578]:
+                  - link "锟斤拷锟斤拷锟斤拷用语音" [ref=f12e579] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E7%94%A8%E8%AF%AD%E9%9F%B3&tn=baidu&rsf=101636703&rsp=3&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_4
+              - row [ref=f12e582]:
+                - cell [ref=f12e583]:
+                  - link "锟是什么金属有什么作用" [ref=f12e584] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E6%98%AF%E4%BB%80%E4%B9%88%E9%87%91%E5%B1%9E%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8&tn=baidu&rsf=101636703&rsp=4&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_5
+                - cell [ref=f12e587]:
+                  - link "锟斤拷石锟斤拷指" [ref=f12e588] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E7%9F%B3%E9%94%9F%E6%96%A4%E6%8B%B7%E6%8C%87&tn=baidu&rsf=101631203&rsp=5&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_6
+              - row [ref=f12e591]:
+                - cell [ref=f12e592]:
+                  - link "锟斤拷乱码怎么转化" [ref=f12e593] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E4%B9%B1%E7%A0%81%E6%80%8E%E4%B9%88%E8%BD%AC%E5%8C%96&tn=baidu&rsf=101636703&rsp=6&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_7
+                - cell [ref=f12e596]:
+                  - link "锟斤拷的编码方式" [ref=f12e597] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E7%9A%84%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F&tn=baidu&rsf=101636703&rsp=7&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_8
+              - row [ref=f12e600]:
+                - cell [ref=f12e601]:
+                  - link "锟鈴的读音和意思" [ref=f12e602] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E9%88%B4%E7%9A%84%E8%AF%BB%E9%9F%B3%E5%92%8C%E6%84%8F%E6%80%9D&tn=baidu&rsf=101636703&rsp=8&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_9
+                - cell [ref=f12e605]:
+                  - link "锟斤拷是什么武器" [ref=f12e606] [cursor=pointer]:
+                    - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E6%98%AF%E4%BB%80%E4%B9%88%E6%AD%A6%E5%99%A8&tn=baidu&rsf=101636703&rsp=9&f=1&rs_src=0&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&rsv_dl=brs_28338_10
+      - generic [ref=f12e611]:
+        - link:
+          - /url: ""
+        - strong [ref=f12e612]:
+          - generic [ref=f12e613]: "1"
+        - link "2" [ref=f12e614] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=10&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link "3" [ref=f12e616] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=20&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link "4" [ref=f12e618] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=30&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link "5" [ref=f12e620] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=40&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link "6" [ref=f12e622] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=50&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link "7" [ref=f12e624] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=60&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link "8" [ref=f12e626] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=70&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link "9" [ref=f12e628] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=80&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link "10" [ref=f12e630] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=90&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=
+        - link [ref=f12e632] [cursor=pointer]:
+          - /url: /s?wd=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&pn=10&oq=%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F%E6%96%A4%E6%8B%B7%E5%A4%9C%E9%94%9F%E6%96%A4%E6%8B%B7%E9%94%9F&ie=utf-8&usm=1&rsv_pq=cdb24a2c0008dc98&rsv_t=ca936Y51FGtiGCiKJtZ5SMjLPHvEZg7IHxTiUx1UoryasNizM98%2BpaTz9KM&topic_pn=&rsv_page=1
+      - generic [ref=f12e637]:
+        - link "帮助" [ref=f12e638] [cursor=pointer]:
+          - /url: https://help.baidu.com/question?prod_id=1
+        - link "举报" [ref=f12e639] [cursor=pointer]:
+          - /url: https://help.baidu.com/jubao?source=search
+        - link "用户反馈" [ref=f12e640] [cursor=pointer]:
+          - /url: javascript:;
+        - link "企业推广" [ref=f12e641] [cursor=pointer]:
+          - /url: https://e.baidu.com/lp/search/?refer=1298

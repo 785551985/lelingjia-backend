@@ -120,34 +120,46 @@ public class KnowledgeSearchServiceImpl {
      *     LIMIT 10
      * </select>
      */
+    @Autowired
+    private org.ruoyi.service.retrieval.KnowledgeRetrievalService knowledgeRetrievalService;
+
     private List<ChunkMatch> queryVectorAndDbFilter(SearchRequest request, float[] queryVector) {
-        log.info("执行 PostgreSQL pgvector 一体化 SQL 过滤与检索...");
-        
-        List<ChunkMatch> mockResult = new ArrayList<>();
-        
-        ChunkMatch c1 = new ChunkMatch();
-        c1.setDocId(1001L);
-        c1.setDocName("集团报销合规管理办法.pdf");
-        c1.setVersion("v1.0");
-        c1.setEffectiveDate(parseDate("2023-01-01 00:00:00"));
-        c1.setPriority(100); 
-        c1.setPageNumber(3);
-        c1.setContent("集团员工出差伙食补贴标准为每日 100 元。(本规范自2023年起实施)");
-        c1.setSimilarityScore(0.812);
-        mockResult.add(c1);
+        log.info("执行 PostgreSQL 真实向量与全文混合检索, kbId: {}, query: {}", request.getKbId(), request.getQuery());
 
-        ChunkMatch c2 = new ChunkMatch();
-        c2.setDocId(1002L);
-        c2.setDocName("关于调整集团差旅伙食补贴的补充规定.pdf");
-        c2.setVersion("v2.0");
-        c2.setEffectiveDate(parseDate("2025-06-01 00:00:00"));
-        c2.setPriority(100); 
-        c2.setPageNumber(1);
-        c2.setContent("集团员工出差伙食补贴标准自2025年6月起调整为每日 150 元。");
-        c2.setSimilarityScore(0.854);
-        mockResult.add(c2);
+        if (request.getKbId() == null) {
+            return Collections.emptyList();
+        }
 
-        return mockResult;
+        org.ruoyi.domain.bo.vector.QueryVectorBo queryBo = new org.ruoyi.domain.bo.vector.QueryVectorBo();
+        queryBo.setKid(String.valueOf(request.getKbId()));
+        queryBo.setQuery(request.getQuery());
+        queryBo.setMaxResults(10);
+        queryBo.setSimilarityThreshold(0.2); // 召回相似度阈值
+
+        List<org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo> retrievalVos = knowledgeRetrievalService.retrieve(queryBo);
+        if (retrievalVos == null || retrievalVos.isEmpty()) {
+            log.warn("未检索到任何符合条件的切片数据，kbId: {}", request.getKbId());
+            return Collections.emptyList();
+        }
+
+        List<ChunkMatch> results = new ArrayList<>();
+        for (org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo vo : retrievalVos) {
+            ChunkMatch match = new ChunkMatch();
+            if (org.ruoyi.common.core.utils.StringUtils.isNotBlank(vo.getDocId())) {
+                try {
+                    match.setDocId(Long.parseLong(vo.getDocId()));
+                } catch (Exception ignored) {}
+            }
+            match.setDocName(org.ruoyi.common.core.utils.StringUtils.isNotBlank(vo.getSourceName()) ? vo.getSourceName() : "知识文档");
+            match.setVersion("v1.0");
+            match.setEffectiveDate(new Date());
+            match.setPriority(100);
+            match.setPageNumber(1);
+            match.setContent(vo.getContent());
+            match.setSimilarityScore(vo.getScore() != null ? vo.getScore() : 0.5);
+            results.add(match);
+        }
+        return results;
     }
 
     private float[] getQueryEmbedding(String query) {

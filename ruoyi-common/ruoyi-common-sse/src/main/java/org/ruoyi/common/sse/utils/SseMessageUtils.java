@@ -136,6 +136,16 @@ public class SseMessageUtils {
     }
 
     /**
+     * 发送参考来源事件
+     *
+     * @param userId      用户ID
+     * @param sourcesJson 参考来源 JSON 字符串
+     */
+    public static void sendSources(Long userId, String sourcesJson) {
+        sendEvent(userId, SseEventDto.sources(sourcesJson));
+    }
+
+    /**
      * 发送错误事件
      *
      * @param userId 用户ID

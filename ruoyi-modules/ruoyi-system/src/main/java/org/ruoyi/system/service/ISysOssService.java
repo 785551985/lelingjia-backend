@@ -62,6 +62,16 @@ public interface ISysOssService {
     SysOssVo upload(File file);
 
     /**
+     * 上传 MultipartFile 到指定 OSS 配置的指定前缀路径，并保存文件信息到数据库
+     *
+     * @param file      要上传的 MultipartFile 对象
+     * @param configKey OSS 配置 key（如 "minio-kb"）
+     * @param prefix    自定义路径前缀（如 "000000/103/5001"）
+     * @return 上传成功后的 SysOssVo 对象
+     */
+    SysOssVo uploadToStore(MultipartFile file, String configKey, String prefix);
+
+    /**
      * 上传文件到千问平台（千问百炼版本）
      *
      * @param file 要上传的 MultipartFile 对象
@@ -76,6 +86,14 @@ public interface ISysOssService {
      * @param response HttpServletResponse对象，用于设置响应头和向客户端发送文件内容
      */
     void download(Long ossId, HttpServletResponse response) throws IOException;
+
+    /**
+     * 文件在线受控预览方法（inline模式）
+     *
+     * @param ossId    OSS对象ID
+     * @param response HttpServletResponse对象
+     */
+    void preview(Long ossId, HttpServletResponse response) throws IOException;
 
     /**
      * 删除OSS对象存储

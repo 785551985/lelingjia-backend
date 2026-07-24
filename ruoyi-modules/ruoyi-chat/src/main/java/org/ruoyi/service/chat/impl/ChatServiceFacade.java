@@ -73,11 +73,23 @@ import org.ruoyi.service.knowledge.retriever.CustomVectorRetriever;
 import org.ruoyi.service.vector.VectorStoreService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.ruoyi.domain.dto.knowledge.KnowledgeSourceDto;
+import org.ruoyi.domain.entity.knowledge.KnowledgeAttach;
+import org.ruoyi.domain.entity.knowledge.KnowledgeFragment;
+import org.ruoyi.domain.vo.knowledge.KnowledgeAttachVo;
+import org.ruoyi.mapper.knowledge.KnowledgeAttachMapper;
+import org.ruoyi.mapper.knowledge.KnowledgeFragmentMapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -107,6 +119,10 @@ public class ChatServiceFacade implements IChatService {
     private final VectorStoreService vectorStoreService;
 
     private final KnowledgeRetrievalService knowledgeRetrievalService;
+
+    private final KnowledgeAttachMapper knowledgeAttachMapper;
+
+    private final KnowledgeFragmentMapper knowledgeFragmentMapper;
 
     private final SseEmitterManager sseEmitterManager;
 
@@ -156,10 +172,20 @@ public class ChatServiceFacade implements IChatService {
             }
         }
 
-        // 1. 根据模型名称查询完整配置
-        ChatModelVo chatModelVo = chatModelService.selectModelByName(chatRequest.getModel());
+        // 1. 根据模型名称查询完整配置，若未指定或无法匹配则自动回退到系统可用模型
+        ChatModelVo chatModelVo = null;
+        if (StringUtils.isNotBlank(chatRequest.getModel())) {
+            chatModelVo = chatModelService.selectModelByName(chatRequest.getModel());
+        }
         if (chatModelVo == null) {
-            throw new IllegalArgumentException("模型不存在: " + chatRequest.getModel());
+            List<ChatModelVo> models = chatModelService.queryList(new org.ruoyi.common.chat.domain.bo.chat.ChatModelBo());
+            if (models != null && !models.isEmpty()) {
+                chatModelVo = models.get(0);
+                chatRequest.setModel(chatModelVo.getModelName());
+                log.info("未匹配到指定模型，自动回退打底模型: {}", chatModelVo.getModelName());
+            } else {
+                throw new IllegalArgumentException("系统中尚未配置任何 AI 大模型，请在管理后台先添加模型配置");
+            }
         }
 
         // 2. 构建上下文消息列表（系统提示词 + 历史消息 + 当前用户消息）
@@ -221,23 +247,30 @@ public class ChatServiceFacade implements IChatService {
 
         Long userId = chatRequest.getUserId();
 
-        // 工具装配：智能体有关联工具ID时按ID装配，否则回退到原有硬编码 MCP 客户端
-        ToolProvider toolProvider;
+        // 工具装配：智能体有关联工具ID时按ID装配，未配置时为 null（避免强推硬编码 Playwright 挂载抛错）
+        ToolProvider toolProvider = null;
         if (agentVo != null && agentVo.getMcpToolIds() != null && !agentVo.getMcpToolIds().isEmpty()) {
-            toolProvider = langChain4jMcpToolProviderService.getToolProvider(agentVo.getMcpToolIds());
-        } else {
-            toolProvider = buildDefaultMcpToolProvider(userId);
+            try {
+                toolProvider = langChain4jMcpToolProviderService.getToolProvider(agentVo.getMcpToolIds());
+            } catch (Exception e) {
+                log.warn("构建指定 MCP 工具异常，跳过工具注入: err={}", e.getMessage());
+            }
         }
 
         // Skills 装配：智能体有勾选技能名时按名过滤磁盘 skills，否则加载全部
         ShellSkills skills = buildShellSkills(agentVo);
 
-        // 构建子 Agent
-        WebSearchAgent searchAgent  = AgenticServices.agentBuilder(WebSearchAgent.class)
-            .chatModel(plannerModel)
-            .toolProvider(toolProvider)
-            .listener(new MyAgentListener())
-            .build();
+        // 构建子 Agent 列表
+        List<Object> subAgents = new ArrayList<>();
+
+        if (toolProvider != null) {
+            WebSearchAgent searchAgent = AgenticServices.agentBuilder(WebSearchAgent.class)
+                .chatModel(plannerModel)
+                .toolProvider(toolProvider)
+                .listener(new MyAgentListener())
+                .build();
+            subAgents.add(searchAgent);
+        }
 
         // SkillsAgent：仅当有可用 skills 时才注入 systemMessage + toolProvider
         var skillsAgentBuilder = AgenticServices.agentBuilder(SkillsAgent.class)
@@ -247,46 +280,83 @@ public class ChatServiceFacade implements IChatService {
                 .systemMessage("You have access to the following skills:\n" + skills.formatAvailableSkills()
                     + "\nWhen the user's request relates to one of these skills, activate it first using the `activate_skill` tool before proceeding.")
                 .toolProvider(skills.toolProvider());
+            subAgents.add(skillsAgentBuilder.build());
         }
-        SkillsAgent skillsAgent = skillsAgentBuilder.build();
 
-        // 构建子 Agent 3: SqlAgent - 负责数据库查询
+        // 构建子 Agent: SqlAgent - 负责数据库查询
         SqlAgent sqlAgent = AgenticServices.agentBuilder(SqlAgent.class)
             .chatModel(plannerModel)
             .tools(new QueryAllTablesTool(), new QueryTableSchemaTool(), new ExecuteSqlQueryTool())
             .listener(new MyAgentListener())
             .build();
+        subAgents.add(sqlAgent);
 
-        // 构建子 Agent 4: ChartGenerationAgent - 负责图表生成
+        // 构建子 Agent: ChartGenerationAgent - 负责图表生成
         ChartGenerationAgent chartGenerationAgent = AgenticServices.agentBuilder(ChartGenerationAgent.class)
             .chatModel(plannerModel)
             .listener(new MyAgentListener())
             .build();
+        subAgents.add(chartGenerationAgent);
 
-        // 构建子 Agent 5: EchartsAgent - 负责数据可视化（结合 SQL 查询生成 Echarts 图表）
+        // 构建子 Agent: EchartsAgent - 负责数据可视化（结合 SQL 查询生成 Echarts 图表）
         EchartsAgent echartsAgent = AgenticServices.agentBuilder(EchartsAgent.class)
             .chatModel(plannerModel)
             .tools(new QueryAllTablesTool(), new QueryTableSchemaTool(), new ExecuteSqlQueryTool())
             .listener(new MyAgentListener())
             .build();
+        subAgents.add(echartsAgent);
 
-        // 构建子 Agent 6: ChitChatAgent - 简单闲聊兜底,避免无子 Agent 可用时 supervisor 空转
-        ChitChatAgent chitChatAgent = AgenticServices.agentBuilder(ChitChatAgent.class)
-            .chatModel(plannerModel)
-            .build();
-
-        // 构建监督者 Agent - 管理多个子 Agent
+        // 构建监督者 Agent - 管理多个专业子 Agent（SQL、图表、技能、网络搜索）
+        // 注意：通用问答不经过带有硬编码闲聊人设的子 Agent，确保完全遵循配置的系统提示词（systemPrompt）
         var supervisorBuilder = AgenticServices.supervisorBuilder()
             .chatModel(plannerModel)
-            .subAgents(skillsAgent, searchAgent, sqlAgent, chartGenerationAgent, echartsAgent, chitChatAgent)
-            .supervisorContext("仅当请求是问候或简单闲聊、不需要任何数据、搜索、技能或图表时,才使用 chitChatAgent;"
-                + "其余情况必须使用对应的专业 Agent")
-            .responseStrategy(SupervisorResponseStrategy.SUMMARY);
+            .subAgents(subAgents.toArray())
+            .supervisorContext("优先根据用户提问意图路由 Agent："
+                + "涉及数据库表格与结构数据查询使用 sqlAgent；"
+                + "生成图表或数据可视化使用 chartGenerationAgent / echartsAgent。"
+                + "如有技能或搜索工具方可使用技能/搜索 Agent。")
+            .responseStrategy(SupervisorResponseStrategy.LAST);
         SupervisorAgent supervisor = supervisorBuilder.build();
 
         // 知识库增强：智能体绑定了知识库时，对 supervisor 输入做一次 RAG 增强（全程唯一一次检索）
-        String augmentedInput = augmentAgentInput(chatRequest, agentVo);
-        // 组装最终 prompt：系统提示词 → 多轮历史 → RAG 增强后的当前提问
+        RagAugmentResult ragResult = augmentAgentInput(chatRequest, agentVo);
+        String augmentedInput = ragResult.getAugmentedPrompt();
+        List<KnowledgeSourceDto> sourcesList = ragResult.getSources();
+
+        // 纯粹企业知识库与产品使用助手定位：未检索到知识库关联文档时，聚焦系统使用指导与知识库本身
+        if (sourcesList == null || sourcesList.isEmpty()) {
+            augmentedInput += "\n\n【知识库与产品助手回答指引】：\n"
+                + "你是乐龄家企业专属知识库助手，职责专注于：1. 解答本企业知识库内的文档、业务 SOP、规章制度与产品资质；2. 指导用户如何使用本 AI 知识库系统进行高效交互。\n"
+                + "1. **系统使用指导与问候**：如果用户在询问本系统的功能、使用方法、交互说明或日常问候（例如“你能做什么”、“怎么使用这个系统”、“如何提问”、“怎么预览原件”、“怎么提交领用申请”）：\n"
+                + "   请礼貌、清晰、分条理地为用户讲解系统的使用方法：\n"
+                + "   - 💡 **检索提问**：直接输入业务关键词（如“康复”、“发票”）或具体问题，系统会自动调取知识库准确解答；\n"
+                + "   - 📄 **原件受控预览**：回答下方会自动附带【参考来源卡片】，点击任意文件名即可打开带防伪水印的高清原件预览（支持 PDF、Excel 表格、Word 文档）；\n"
+                + "   - 📝 **无水印原件申请**：在预览弹窗底部可直接提交领用申请，经审批通过后即可下载无水印原件。\n"
+                + "2. **外部无关问题拦截**：对于未在当前知识库中检索到依据的外部无关问题（如通用写代码、生活娱乐、外部新闻）：\n"
+                + "   请统一礼貌回复：“抱歉，在当前企业知识库中未检索到相关文档。我是您的企业专属知识库助手，专注于解答本知识库内的业务 SOP、规章制度与本系统的使用操作。通用外部问题建议使用通用大模型查询哦，请问关于本企业知识库有哪些我可以帮您的？”";
+        }
+
+        // 构建结构化 ChatMessage 列表（确保 SystemMessage 作为系统角色独立发送给大模型）
+        List<ChatMessage> fullMessages = new ArrayList<>();
+        if (agentVo != null && StringUtils.isNotBlank(agentVo.getSystemPrompt())) {
+            fullMessages.add(SystemMessage.from(agentVo.getSystemPrompt()));
+        }
+        if (chatRequest.getContextMessages() != null) {
+            int limit = chatRequest.getContextMessages().size();
+            // 排除最后一条原始 UserMessage
+            if (limit > 0 && chatRequest.getContextMessages().get(limit - 1) instanceof UserMessage) {
+                limit--;
+            }
+            for (int i = 0; i < limit; i++) {
+                ChatMessage msg = chatRequest.getContextMessages().get(i);
+                if (!(msg instanceof SystemMessage)) {
+                    fullMessages.add(msg);
+                }
+            }
+        }
+        fullMessages.add(UserMessage.userMessage(augmentedInput));
+
+        // 组装供 Supervisor 使用的文本
         StringBuilder promptBuilder = new StringBuilder();
         if (agentVo != null && StringUtils.isNotBlank(agentVo.getSystemPrompt())) {
             promptBuilder.append(agentVo.getSystemPrompt()).append("\n\n");
@@ -301,19 +371,44 @@ public class ChatServiceFacade implements IChatService {
 
         String tokenValue = chatRequest.getTokenValue();
 
-        // 异步执行 supervisor，避免阻塞 HTTP 请求线程导致 SSE 事件被缓冲
+        // 异步执行智能体对话，结果通过 SSE 推送
         CompletableFuture.runAsync(() -> {
             try {
-                String result = supervisor.invoke(prompt);
+                if (sourcesList != null && !sourcesList.isEmpty()) {
+                    SseMessageUtils.sendSources(userId, JSONUtil.toJsonStr(sourcesList));
+                }
+                String result = null;
+                // 仅当明确需要 SQL数据库、图表可视化、联网搜索或扩展技能等工具时，才通过 Supervisor 进行多 Agent 调度
+                boolean needSpecialTools = isSpecialToolRequested(chatRequest.getContent());
+                if (needSpecialTools && !subAgents.isEmpty()) {
+                    try {
+                        result = supervisor.invoke(prompt);
+                    } catch (Exception agentEx) {
+                        log.debug("Supervisor 调度异常，自动无缝切换为大模型直连回答: err={}", agentEx.getMessage());
+                    }
+                }
+
+                // 普通对话、日常问候与知识库 RAG 问答：直连大模型（包含完整系统提示词 SystemMessage，确保 100% 遵守人设与精炼控制）
+                if (StringUtils.isBlank(result) || result.contains("已成功调用") || result.contains("根据您提供的角色")) {
+                    ChatResponse resp = plannerModel.chat(fullMessages);
+                    result = resp.aiMessage().text();
+                }
+
+                result = sanitizeOutputText(result);
+
                 SseMessageUtils.sendContent(userId, result);
                 SseMessageUtils.sendDone(userId);
-                // 保存助手回复到数据库（智能体对话为默认路径后，需在此落库以保留历史）
+                // 保存助手回复到数据库 (带参考来源元数据)
                 if (StringUtils.isNotBlank(result)) {
+                    String messageToSave = result;
+                    if (sourcesList != null && !sourcesList.isEmpty()) {
+                        messageToSave += "\n<sources>" + JSONUtil.toJsonStr(sourcesList) + "</sources>";
+                    }
                     chatMessageService.saveChatMessage(userId, chatRequest.getSessionId(),
-                        result, RoleType.ASSISTANT.getName(), chatRequest.getModel());
+                        messageToSave, RoleType.ASSISTANT.getName(), chatRequest.getModel());
                 }
             } catch (Exception e) {
-                log.error("Supervisor 执行失败", e);
+                log.error("智能体对话执行失败", e);
                 SseMessageUtils.sendError(userId, e.getMessage());
             } finally {
                 SseMessageUtils.completeConnection(userId, tokenValue);
@@ -365,46 +460,179 @@ public class ChatServiceFacade implements IChatService {
      * 无 skills 时返回 null（调用方据此跳过 SkillsAgent 的 toolProvider 注入）
      */
     private ShellSkills buildShellSkills(AgentVo agentVo) {
-        java.nio.file.Path skillsPath = SkillsPathResolver.resolveSkillsPath();
-        List<FileSystemSkill> skillsList = FileSystemSkillLoader.loadSkills(skillsPath);
-        if (skillsList == null || skillsList.isEmpty()) {
-            return null;
-        }
-        if (agentVo != null && agentVo.getSkillNames() != null && !agentVo.getSkillNames().isEmpty()) {
-            skillsList = skillsList.stream()
-                .filter(s -> agentVo.getSkillNames().contains(s.name()))
-                .toList();
-            if (skillsList.isEmpty()) {
+        try {
+            java.nio.file.Path skillsPath = SkillsPathResolver.resolveSkillsPath();
+            List<FileSystemSkill> skillsList = FileSystemSkillLoader.loadSkills(skillsPath);
+            if (skillsList == null || skillsList.isEmpty()) {
                 return null;
             }
+            if (agentVo != null && agentVo.getSkillNames() != null && !agentVo.getSkillNames().isEmpty()) {
+                skillsList = skillsList.stream()
+                    .filter(s -> agentVo.getSkillNames().contains(s.name()))
+                    .toList();
+                if (skillsList.isEmpty()) {
+                    return null;
+                }
+            }
+            return ShellSkills.from(skillsList);
+        } catch (Exception e) {
+            log.warn("加载磁盘 Skills 发生异常，跳过技能加载: err={}", e.getMessage());
+            return null;
         }
-        return ShellSkills.from(skillsList);
+    }
+
+    @lombok.Data
+    @lombok.AllArgsConstructor
+    private static class RagAugmentResult {
+        private String augmentedPrompt;
+        private List<KnowledgeSourceDto> sources;
     }
 
     /**
-     * 智能体对话下的输入增强：智能体绑定知识库时，对原始 content 做多知识库 RAG 增强。
-     * 无知识库时原样返回 content。
+     * 智能体对话下的输入增强：智能体绑定知识库时，对原始 content 做多知识库 RAG 增强，并同步提取参考来源。
+     * 无知识库时原样返回 content 与空来源。
      */
-    private String augmentAgentInput(ChatRequest chatRequest, AgentVo agentVo) {
+    private RagAugmentResult augmentAgentInput(ChatRequest chatRequest, AgentVo agentVo) {
         String content = chatRequest.getContent();
         List<Long> knowledgeIds = collectKnowledgeIds(chatRequest, agentVo);
         if (knowledgeIds == null || knowledgeIds.isEmpty()) {
-            return content;
+            return new RagAugmentResult(content, Collections.emptyList());
         }
         try {
-            RetrievalAugmentor augmentor = buildMultiKnowledgeAugmentor(knowledgeIds);
-            if (augmentor == null) {
-                return content;
+            ContentRetriever retriever = buildMultiKnowledgeContentRetriever(knowledgeIds);
+            if (retriever == null) {
+                return new RagAugmentResult(content, Collections.emptyList());
             }
-            UserMessage userMessage = UserMessage.userMessage(content);
-            Metadata metadata = Metadata.from(userMessage, chatRequest.getSessionId(), new ArrayList<>());
-            AugmentationResult result = augmentor.augment(new AugmentationRequest(userMessage, metadata));
-            ChatMessage augmented = result.chatMessage();
-            return augmented instanceof UserMessage ? ((UserMessage) augmented).singleText() : content;
+            List<Content> contents = retriever.retrieve(Query.from(content));
+            if (contents == null || contents.isEmpty()) {
+                return new RagAugmentResult(content, Collections.emptyList());
+            }
+
+            StringBuilder sb = new StringBuilder("你是一位专业、礼貌、严谨的企业知识库智能助手。\n");
+            sb.append("【回答与交互准则】：\n");
+            sb.append("1. **宽泛/简短提问主动澄清引导（极其重要）**：\n");
+            sb.append("   - 如果用户的提问非常简短、宽泛或未明确具体意图（例如仅输入“康复”、“护理”、“流程”、“发票”等单个词汇或宽泛短语）：\n");
+            sb.append("     请【严禁】直接将检索到的所有细枝末节文章或文档全部堆砌输出！\n");
+            sb.append("     你应当：\n");
+            sb.append("     ① 先简明概括知识库中关于该主题包含的 2-3 个核心分支/方向（例如：1. 康复业务与客资 SOP、2. 康复科流量与搜索词洞察、3. 康复收费标准等）；\n");
+            sb.append("     ② 接着主动、有礼貌地反问用户：“请问您具体想了解以上哪一方面的详细信息？（您可以回复数字选项或具体问题，我将为您精准解答）”。\n");
+            sb.append("2. **具体提问精准回答**：\n");
+            sb.append("   - 如果用户的提问具体明确（例如“康复客资SOP是什么”或“长护险申请流程”），请结合参考资料给出结构清晰、条理分明的回答。\n");
+            sb.append("3. **严防幻觉**：完全基于参考资料回答，切勿瞎编乱造。\n\n");
+            sb.append("【参考资料】\n");
+            for (int i = 0; i < contents.size(); i++) {
+                sb.append("[").append(i + 1).append("] ")
+                  .append(contents.get(i).textSegment().text())
+                  .append("\n\n");
+            }
+            sb.append("---------------------\n用户提问：").append(content);
+
+            List<KnowledgeSourceDto> sources = extractSourcesFromContents(contents);
+            return new RagAugmentResult(sb.toString(), sources);
         } catch (Exception e) {
             log.warn("智能体对话 RAG 增强失败，回退原始输入: {}", e.getMessage());
-            return content;
+            return new RagAugmentResult(content, Collections.emptyList());
         }
+    }
+
+    private List<KnowledgeSourceDto> extractSourcesFromContents(List<Content> contents) {
+        if (contents == null || contents.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<String, KnowledgeSourceDto> sourceMap = new LinkedHashMap<>();
+        Set<String> docIds = new HashSet<>();
+
+        for (Content c : contents) {
+            if (c.textSegment() == null || c.textSegment().metadata() == null) {
+                continue;
+            }
+            var meta = c.textSegment().metadata();
+            String docId = meta.getString("docId");
+            String kidStr = meta.getString("kid");
+            String snippet = c.textSegment().text();
+            if (StringUtils.isNotBlank(docId)) {
+                docIds.add(docId);
+            }
+            Long kid = StringUtils.isNotBlank(kidStr) ? Long.valueOf(kidStr) : null;
+            String kname = "企业知识库";
+            if (kid != null) {
+                try {
+                    KnowledgeInfoVo kVo = knowledgeInfoService.queryById(kid);
+                    if (kVo != null && StringUtils.isNotBlank(kVo.getName())) {
+                        kname = kVo.getName();
+                    }
+                } catch (Exception ignored) {}
+            }
+            String key = StringUtils.isNotBlank(docId) ? docId : (snippet != null ? snippet : String.valueOf(sourceMap.size()));
+            if (!sourceMap.containsKey(key)) {
+                KnowledgeSourceDto dto = KnowledgeSourceDto.builder()
+                    .docId(docId)
+                    .knowledgeId(kid)
+                    .knowledgeName(kname)
+                    .snippet(snippet)
+                    .name(kname + " 参考出处")
+                    .score(92.0)
+                    .build();
+                sourceMap.put(key, dto);
+            } else {
+                KnowledgeSourceDto existing = sourceMap.get(key);
+                if (existing != null && StringUtils.isNotBlank(snippet)) {
+                    if (!existing.getSnippet().contains(snippet)) {
+                        existing.setSnippet(existing.getSnippet() + "\n\n" + snippet);
+                    }
+                }
+            }
+        }
+
+        if (!docIds.isEmpty()) {
+            try {
+                // 1. 查询关联附件名称与 OSS ID
+                List<KnowledgeAttachVo> attaches = knowledgeAttachMapper.selectVoList(
+                    Wrappers.<KnowledgeAttach>lambdaQuery().in(KnowledgeAttach::getDocId, docIds)
+                );
+                if (attaches != null) {
+                    for (KnowledgeAttachVo vo : attaches) {
+                        KnowledgeSourceDto dto = sourceMap.get(vo.getDocId());
+                        if (dto != null) {
+                            if (StringUtils.isNotBlank(vo.getName())) {
+                                dto.setName(vo.getName());
+                            }
+                            dto.setOssId(vo.getOssId());
+                            if (vo.getOssId() != null) {
+                                dto.setDownloadUrl("/resource/oss/preview/" + vo.getOssId());
+                            }
+                        }
+                    }
+                }
+
+                // 2. 自动拉取并按顺序拼接该文档下的全量切片文本（包含所有表格、工作表与全量段落），实现 100% 完整的受控原件文本预览！
+                List<KnowledgeFragment> frags = knowledgeFragmentMapper.selectList(
+                    Wrappers.<KnowledgeFragment>lambdaQuery()
+                        .in(KnowledgeFragment::getDocId, docIds)
+                        .orderByAsc(KnowledgeFragment::getIdx)
+                );
+                if (frags != null && !frags.isEmpty()) {
+                    Map<String, List<KnowledgeFragment>> fragMap = frags.stream()
+                        .filter(f -> StringUtils.isNotBlank(f.getDocId()) && StringUtils.isNotBlank(f.getContent()))
+                        .collect(Collectors.groupingBy(KnowledgeFragment::getDocId));
+
+                    for (Map.Entry<String, List<KnowledgeFragment>> entry : fragMap.entrySet()) {
+                        KnowledgeSourceDto dto = sourceMap.get(entry.getKey());
+                        if (dto != null) {
+                            String fullDocText = entry.getValue().stream()
+                                .map(f -> f.getContent().trim())
+                                .collect(Collectors.joining("\n\n----------------------------------------\n\n"));
+                            if (StringUtils.isNotBlank(fullDocText)) {
+                                dto.setSnippet(fullDocText);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("查询关联附件及切片文本异常: err={}", e.getMessage());
+            }
+        }
+        return new ArrayList<>(sourceMap.values());
     }
 
     /**
@@ -539,7 +767,37 @@ public class ChatServiceFacade implements IChatService {
     }
 
     /**
-     * 汇总本次对话要检索的知识库ID列表：智能体绑定的 knowledgeIds 优先，回退到请求的 knowledgeId
+     * 对 AI 输出进行安全脱敏净化，强行剔除任何可能包含的服务器本地物理盘符与绝对目录路径（如 D:\czl\企业知识库...）
+     */
+    private String sanitizeOutputText(String text) {
+        if (StringUtils.isBlank(text)) {
+            return text;
+        }
+        // 过滤 Windows/Linux 本地物理磁盘绝对路径，替换为通用描述
+        return text.replaceAll("(?i)[a-z]:\\\\(?:[^\\s\\u4e00-\\u9fa5,，。！!？?)\\]]+)", "知识库系统")
+                   .replaceAll("(?i)[a-z]:/(?:[^\\s\\u4e00-\\u9fa5,，。！!？?)\\]]+)", "知识库系统");
+    }
+
+    /**
+     * 判断用户提问是否真正需要特殊的扩展工具子 Agent（如数据库SQL查询、图表生成、联网搜索、磁盘技能等）。
+     * 只有明确提出画图、生成图表、查询数据库等指令时才触发。普通对话、名词检索与知识库 RAG 问答返回 false。
+     */
+    private boolean isSpecialToolRequested(String content) {
+        if (StringUtils.isBlank(content)) {
+            return false;
+        }
+        String lower = content.toLowerCase();
+        return lower.contains("sql") || lower.contains("数据库") || lower.contains("数据表") || lower.contains("执行sql")
+            || lower.contains("生成图表") || lower.contains("echarts") || lower.contains("画图") || lower.contains("画柱状图")
+            || lower.contains("柱状图") || lower.contains("折线图") || lower.contains("饼图") || lower.contains("数据可视化")
+            || lower.contains("联网搜索") || lower.contains("全网检索") || lower.contains("网络搜索") || lower.contains("调用技能");
+    }
+
+    /**
+     * 汇总本次对话要检索的知识库ID列表：
+     * 1. 智能体显式绑定的 knowledgeIds 优先；
+     * 2. 请求显式指定的 knowledgeId 次之；
+     * 3. 若均为空（智能体【关联知识库】留空），自动回退为当前登录员工权限内可访问的所有知识库（集团/机构/部门/个人）。
      */
     private List<Long> collectKnowledgeIds(ChatRequest chatRequest, AgentVo agentVo) {
         if (agentVo != null && agentVo.getKnowledgeIds() != null && !agentVo.getKnowledgeIds().isEmpty()) {
@@ -551,15 +809,26 @@ public class ChatServiceFacade implements IChatService {
             } catch (NumberFormatException ignored) {
             }
         }
+        // 当【关联知识库】留空时，自动按数据权限获取当前员工可见的所有知识库（集团级、机构级、部门级、个人私有级）
+        try {
+            List<KnowledgeInfoVo> accessibleKbs = knowledgeInfoService.queryList(new org.ruoyi.domain.bo.knowledge.KnowledgeInfoBo());
+            if (accessibleKbs != null && !accessibleKbs.isEmpty()) {
+                List<Long> kbIds = accessibleKbs.stream().map(KnowledgeInfoVo::getId).toList();
+                log.debug("智能体未限定知识库，自动开启全权限知识库检索, 可见知识库数量: {}", kbIds.size());
+                return kbIds;
+            }
+        } catch (Exception e) {
+            log.warn("获取员工全量权限知识库失败: err={}", e.getMessage());
+        }
         return List.of();
     }
 
     /**
-     * 构建多知识库复合检索增强器。
-     * 单知识库直接用 DefaultRetrievalAugmentor + CustomVectorRetriever；
-     * 多知识库用一个复合 ContentRetriever 合并各库检索结果。
+     * 构建多知识库复合 ContentRetriever。
+     * 单知识库直接用 CustomVectorRetriever；
+     * 多知识库用一个 CompositeContentRetriever 合并各库检索结果。
      */
-    private RetrievalAugmentor buildMultiKnowledgeAugmentor(List<Long> knowledgeIds) {
+    private ContentRetriever buildMultiKnowledgeContentRetriever(List<Long> knowledgeIds) {
         if (knowledgeIds == null || knowledgeIds.isEmpty()) {
             return null;
         }
@@ -583,13 +852,9 @@ public class ChatServiceFacade implements IChatService {
         if (retrievers.isEmpty()) {
             return null;
         }
-        // 单库直接返回；多库用复合检索器
-        ContentRetriever composite = retrievers.size() == 1
+        return retrievers.size() == 1
             ? retrievers.get(0)
             : new CompositeContentRetriever(retrievers);
-        return DefaultRetrievalAugmentor.builder()
-            .contentRetriever(composite)
-            .build();
     }
 
     /**

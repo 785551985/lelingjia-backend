@@ -1,0 +1,233 @@
+- generic [active] [ref=f4e1]:
+  - banner [ref=f4e2]:
+    - button "跳至内容" [ref=f4e4] [cursor=pointer]
+    - button "辅助功能反馈" [ref=f4e7] [cursor=pointer]
+    - generic [ref=f4e10]:
+      - link [ref=f4e11] [cursor=pointer]:
+        - /url: /?FORM=Z9FD1
+        - heading "返回到必应搜索" [level=1] [ref=f4e12]
+      - search [ref=f4e13]:
+        - button "搜索" [ref=f4e16] [cursor=pointer]
+        - searchbox "在此处输入你的搜索 — 输入时会显示搜索建议" [ref=f4e17]: ����Ҵ󽡿��Ƽ� ����ʹ��
+        - button "清除本文" [ref=f4e19]
+    - complementary "帐户奖励和偏好设置" [ref=f4e24]:
+      - button "Microsoft Rewards" [ref=f4e25] [cursor=pointer]:
+        - generic [ref=f4e26]: Rewards
+      - link "登录" [ref=f4e42] [cursor=pointer]:
+        - /url: javascript:void(0)
+    - generic:
+      - generic "国内版" [ref=f4e44]
+      - generic "国际版" [ref=f4e45] [cursor=pointer]
+    - navigation "主菜单" [ref=f4e46]:
+      - list [ref=f4e47]:
+        - listitem [ref=f4e48]:
+          - link "网页" [ref=f4e49] [cursor=pointer]:
+            - /url: /?scope=web&FORM=HDRSC1
+        - listitem [ref=f4e50]:
+          - link "图片" [ref=f4e51] [cursor=pointer]:
+            - /url: /images/search?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&FORM=HDRSC2
+        - listitem [ref=f4e52]:
+          - link "视频" [ref=f4e53] [cursor=pointer]:
+            - /url: /videos/search?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&FORM=HDRSC3
+        - listitem [ref=f4e54]:
+          - link "学术" [ref=f4e55] [cursor=pointer]:
+            - /url: /academic/search?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&FORM=HDRSC4
+        - listitem [ref=f4e56]:
+          - link "词典" [ref=f4e57] [cursor=pointer]:
+            - /url: /dict/search?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&FORM=HDRSC6
+        - listitem [ref=f4e58]:
+          - link "地图" [ref=f4e59] [cursor=pointer]:
+            - /url: /maps?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&FORM=HDRSC7
+        - listitem [ref=f4e60]:
+          - link "航班" [ref=f4e61] [cursor=pointer]:
+            - /url: /travel/search?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&m=flights&FORM=FBSCOP
+  - generic [ref=f4e62]:
+    - main "搜索结果" [ref=f4e63]:
+      - generic [ref=f4e64]: 约 264 个结果
+      - list [ref=f4e76]:
+        - listitem [ref=f4e77]:
+          - link "知乎" [ref=f4e79] [cursor=pointer]:
+            - /url: https://www.zhihu.com/zvideo/1562885435923054593
+            - generic [ref=f4e84]:
+              - generic [ref=f4e85]: 知乎
+              - generic [ref=f4e86]: https://www.zhihu.com
+          - heading [level=2] [ref=f4e89]:
+            - link "锟斤拷 ⊠是怎样炼成的——中文显示“⼊”门指南 - 知乎" [ref=f4e90] [cursor=pointer]:
+              - /url: https://www.zhihu.com/zvideo/1562885435923054593
+          - generic [ref=f4e92]:
+            - 'link "锟斤拷 ⊠是怎样炼成的——中文显示“⼊”门指南 - 知乎 · 时长: 14 分钟59 秒 · 单击以播放。" [ref=f4e99] [cursor=pointer]':
+              - /url: https://www.zhihu.com/zvideo/1562885435923054593
+              - generic [ref=f4e100]: 14:59
+            - paragraph [ref=f4e110]: 2022年10月10日 · 2022年，一则明星考编的热搜把文字编码玩得出神“入”化。 这只是关于文字显示的无 …
+            - generic [ref=f4e112]:
+              - list [ref=f4e113]:
+                - listitem [ref=f4e114]:
+                  - generic [ref=f4e115]: "作者: 柴知道"
+              - list [ref=f4e116]:
+                - listitem [ref=f4e117]:
+                  - generic [ref=f4e118]: 查看次数 468,820
+        - listitem [ref=f4e119]:
+          - link "浙江省立同德医院" [ref=f4e121] [cursor=pointer]:
+            - /url: https://www.zjtongde.com/articleDetail/4589
+            - img "全球 Web 图标" [ref=f4e125]
+            - generic [ref=f4e126]:
+              - generic [ref=f4e127]: 浙江省立同德医院
+              - generic [ref=f4e128]: https://www.zjtongde.com
+          - heading [level=2] [ref=f4e131]:
+            - link "浙江省立同德医院" [ref=f4e132] [cursor=pointer]:
+              - /url: https://www.zjtongde.com/articleDetail/4589
+          - paragraph [ref=f4e134]: 2026年7月15日 · 浙江省立同德医院（浙江省中医药研究院、浙江省精神卫生中心）是省卫生健康委直属的三级甲等中西医结合医院、 …
+        - listitem [ref=f4e135]:
+          - link "手机网易网" [ref=f4e137] [cursor=pointer]:
+            - /url: https://m.163.com/dy/article/HJBI78BF0512JILG.html
+            - generic [ref=f4e142]:
+              - generic [ref=f4e143]: 手机网易网
+              - generic [ref=f4e144]: https://m.163.com
+          - heading [level=2] [ref=f4e147]:
+            - link "锟斤拷 ⊠是怎样炼成的——中文显示“⼊”门指南｜图文" [ref=f4e148] [cursor=pointer]:
+              - /url: https://m.163.com/dy/article/HJBI78BF0512JILG.html
+          - paragraph [ref=f4e150]: 2022年10月10日 · ASCII总共收录了128个字符，包括大小写拉丁字母、数字、常用标点，以及像ESC、换行这种看不见的控制字符。 …
+        - listitem [ref=f4e151]:
+          - link "知乎专栏" [ref=f4e153] [cursor=pointer]:
+            - /url: https://zhuanlan.zhihu.com/p/553295496
+            - generic [ref=f4e158]:
+              - generic [ref=f4e159]: 知乎专栏
+              - generic [ref=f4e160]: https://zhuanlan.zhihu.com
+          - heading [level=2] [ref=f4e163]:
+            - link "彻底解决IDEA输出中文乱码问题 - 知乎" [ref=f4e164] [cursor=pointer]:
+              - /url: https://zhuanlan.zhihu.com/p/553295496
+          - paragraph [ref=f4e166]: 2022年8月13日 · 本文一共有3种方法，针对的情况是输出中文乱码问题问题描述无法正确输出中文字符：（请正确分辨自己是哪一种 …
+        - listitem [ref=f4e167]:
+          - link "腾讯网" [ref=f4e169] [cursor=pointer]:
+            - /url: https://news.qq.com/rain/a/20210216A06UPU00
+            - generic [ref=f4e174]:
+              - generic [ref=f4e175]: 腾讯网
+              - generic [ref=f4e176]: https://news.qq.com
+          - heading [level=2] [ref=f4e179]:
+            - link "1 分钟带你认识从 “ ”到“锟斤拷”_腾讯新闻" [ref=f4e180] [cursor=pointer]:
+              - /url: https://news.qq.com/rain/a/20210216A06UPU00
+          - paragraph [ref=f4e182]: 2021年2月16日 · 在前不久石头哥的这篇文章中 —— 你可能也会掉进这个简单的 String 的坑，讲述了因字符编码问题而连续踩坑的经 …
+        - listitem [ref=f4e183]:
+          - link "博客园" [ref=f4e185] [cursor=pointer]:
+            - /url: https://www.cnblogs.com/jyxqclzx/p/14565938.html
+            - generic [ref=f4e190]:
+              - generic [ref=f4e191]: 博客园
+              - generic [ref=f4e192]: https://www.cnblogs.com
+          - heading [level=2] [ref=f4e195]:
+            - link "Web开发中常见乱码处理 - 冲鸭！！！！ - 博客园" [ref=f4e196] [cursor=pointer]:
+              - /url: https://www.cnblogs.com/jyxqclzx/p/14565938.html
+          - paragraph [ref=f4e198]: 2021年3月22日 · 本文主要是围绕Web开发中涉及到的中文编码这一常见问题展开，包括了对字符编码基础理论的简述以及常见几种编 …
+        - listitem [ref=f4e199]:
+          - link "腾讯云" [ref=f4e201] [cursor=pointer]:
+            - /url: https://cloud.tencent.com/developer/article/1781137
+            - generic [ref=f4e206]:
+              - generic [ref=f4e207]: 腾讯云
+              - generic [ref=f4e208]: https://cloud.tencent.com
+          - heading [level=2] [ref=f4e211]:
+            - link "1 分钟带你认识从 \" \" 到 \"锟斤拷\"-腾讯云开发者社区-腾讯云" [ref=f4e212] [cursor=pointer]:
+              - /url: https://cloud.tencent.com/developer/article/1781137
+          - paragraph [ref=f4e214]: 2021年1月28日 · 当UTF-8编码的 字符 (0xFFFD)被错误转换为GBK编码时，会变成"锟斤拷"三个汉字。 文章深入解析了字符编码原 …
+        - listitem [ref=f4e215]:
+          - generic [ref=f4e216]:
+            - link "浏览此图像" [ref=f4e219] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=mWlklmyD&id=D8E957CA67E03A5EC3F39B36B1C62AFF7F7CAC1E&thid=OIP.mWlklmyD3ZqDHkqLX4QO0AAAAA&mediaurl=https://bkimg.cdn.bcebos.com/smart/aa18972bd40735fae6cdd40a840418b30f2442a7a271-bkimg-process,v_1,rw_1920,rh_1200,maxl_454?x-bce-process=image/format,f_auto&q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&ck=CD4C65651C9269C71E07266832C3C25A&idpp=rc&expw=454&exph=284&form=rc2idp
+            - generic [ref=f4e221]:
+              - link "百度百科" [ref=f4e223] [cursor=pointer]:
+                - /url: https://baike.baidu.com/item/%E9%98%BF%E6%8B%89%E4%BC%AF%E8%AF%AD%E5%AD%97%E6%AF%8D%E8%A1%A8/294145
+                - generic [ref=f4e228]:
+                  - generic [ref=f4e229]: 百度百科
+                  - generic [ref=f4e230]: https://baike.baidu.com
+              - heading [level=2] [ref=f4e233]:
+                - link "阿拉伯语字母表 - 百度百科" [ref=f4e234] [cursor=pointer]:
+                  - /url: https://baike.baidu.com/item/%E9%98%BF%E6%8B%89%E4%BC%AF%E8%AF%AD%E5%AD%97%E6%AF%8D%E8%A1%A8/294145
+              - paragraph [ref=f4e235]: 阿拉伯语字母表是由阿拉伯语所使用的文字组成的字母表。 阿拉伯语属于闪含语系闪米特语族，是世界主要 …
+        - listitem [ref=f4e237]:
+          - link "ee-nav.com" [ref=f4e239] [cursor=pointer]:
+            - /url: https://www.ee-nav.com/4471.html
+            - img "全球 Web 图标" [ref=f4e243]
+            - generic [ref=f4e244]:
+              - generic [ref=f4e245]: ee-nav.com
+              - generic [ref=f4e246]: https://www.ee-nav.com
+          - heading [level=2] [ref=f4e249]:
+            - link "搞懂字符编码，避免锟斤拷，烫烫烫， - 陌路之引" [ref=f4e250] [cursor=pointer]:
+              - /url: https://www.ee-nav.com/4471.html
+          - paragraph [ref=f4e252]: 锟斤拷乱码源于GBK字符集和Unicode字符集之间的转换问题。 Unicode和老编码体系的转化过程中，肯定有一些字，用Unicode是没 …
+        - listitem [ref=f4e253]:
+          - link "新华网内蒙古频道" [ref=f4e255] [cursor=pointer]:
+            - /url: http://www.nmg.xinhuanet.com/zt/jq/index.htm
+            - generic [ref=f4e260]:
+              - generic [ref=f4e261]: 新华网内蒙古频道
+              - generic [ref=f4e262]: http://www.nmg.xinhuanet.com
+          - heading [level=2] [ref=f4e265]:
+            - link "й Ŵ Դ - Xinhuanet" [ref=f4e266] [cursor=pointer]:
+              - /url: http://www.nmg.xinhuanet.com/zt/jq/index.htm
+          - paragraph [ref=f4e268]: ս ʱ ڵľ ս ʱ ԭ ʹ õ Ҫ ͭ ʾ Ҳ У Ʋ⵱ʱƤ ʾ ǽ ʾ ľ ʾ Ҳ ռ
+        - listitem [ref=f4e269]:
+          - generic [ref=f4e270]:
+            - heading [level=2] [ref=f4e271]:
+              - text: 深入了解
+              - strong [ref=f4e272]: ����Ҵ󽡿��Ƽ� ����ʹ��
+            - list [ref=f4e273]:
+              - listitem [ref=f4e274]:
+                - link "呱嗒图片" [ref=f4e275] [cursor=pointer]:
+                  - /url: /search?q=%e5%91%b1%e5%97%92%e5%9b%be%e7%89%87&FORM=QSRE1
+              - listitem [ref=f4e278]:
+                - link "呱嗒是什么意思" [ref=f4e279] [cursor=pointer]:
+                  - /url: /search?q=%e5%91%b1%e5%97%92%e6%98%af%e4%bb%80%e4%b9%88%e6%84%8f%e6%80%9d&FORM=QSRE2
+              - listitem [ref=f4e282]:
+                - link "呱嗒呱嗒" [ref=f4e283] [cursor=pointer]:
+                  - /url: /search?q=%e5%91%b1%e5%97%92%e5%91%b1%e5%97%92&FORM=QSRE3
+              - listitem [ref=f4e286]:
+                - link "聊城呱嗒" [ref=f4e287] [cursor=pointer]:
+                  - /url: /search?q=%e8%81%8a%e5%9f%8e%e5%91%b1%e5%97%92&FORM=QSRE4
+              - listitem [ref=f4e290]:
+                - link "聊城美食" [ref=f4e291] [cursor=pointer]:
+                  - /url: /search?q=%e8%81%8a%e5%9f%8e%e7%be%8e%e9%a3%9f&FORM=QSRE5
+              - listitem [ref=f4e294]:
+                - link "沙镇呱嗒" [ref=f4e295] [cursor=pointer]:
+                  - /url: /search?q=%e6%b2%99%e9%95%87%e5%91%b1%e5%97%92&FORM=QSRE6
+              - listitem [ref=f4e298]:
+                - link "呱嗒是什么" [ref=f4e299] [cursor=pointer]:
+                  - /url: /search?q=%e5%91%b1%e5%97%92%e6%98%af%e4%bb%80%e4%b9%88&FORM=QSRE7
+              - listitem [ref=f4e302]:
+                - link "聊城特色美食" [ref=f4e303] [cursor=pointer]:
+                  - /url: /search?q=%e8%81%8a%e5%9f%8e%e7%89%b9%e8%89%b2%e7%be%8e%e9%a3%9f&FORM=QSRE8
+        - listitem [ref=f4e306]:
+          - text: 为回应符合本地法律要求的通知，部分搜索结果未予显示。有关详细信息，请参阅
+          - link "此处" [ref=f4e307] [cursor=pointer]:
+            - /url: http://go.microsoft.com/fwlink/?LinkID=617350
+          - text: 。
+        - listitem [ref=f4e308]:
+          - navigation "����Ҵ󽡿��Ƽ� ����ʹ�� 的更多搜索结果":
+            - list:
+              - listitem [ref=f4e309]:
+                - generic "第 1 页" [ref=f4e310]: "1"
+              - listitem [ref=f4e311]:
+                - link "第 2 页" [ref=f4e312] [cursor=pointer]:
+                  - /url: /search?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&FPIG=82F78CEAE684494CB7B7AFAFD11AA337&first=10&FORM=PERE
+                  - text: "2"
+              - listitem [ref=f4e313]:
+                - link "第 3 页" [ref=f4e314] [cursor=pointer]:
+                  - /url: /search?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&FPIG=82F78CEAE684494CB7B7AFAFD11AA337&first=20&FORM=PERE1
+                  - text: "3"
+              - listitem [ref=f4e315]:
+                - link "下一页" [ref=f4e316] [cursor=pointer]:
+                  - /url: /search?q=%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%d2%b4%f3%bd%a1%bf%ef%bf%bd%ef%bf%bd%c6%bc%ef%bf%bd+%ef%bf%bd%ef%bf%bd%ef%bf%bd%ef%bf%bd%ca%b9%ef%bf%bd%ef%bf%bd&FPIG=82F78CEAE684494CB7B7AFAFD11AA337&first=10&FORM=PORE
+    - complementary "更多结果"
+  - contentinfo [ref=f4e317]:
+    - list [ref=f4e319]:
+      - listitem [ref=f4e320]:
+        - link "增值电信业务经营许可证：合字B2-20090007" [ref=f4e321] [cursor=pointer]:
+          - /url: https://dxzhgl.miit.gov.cn/dxxzsp/xkz/xkzgl/resource/qiyereport.jsp?num=caf04fa4-bd8a-4d9e-80b6-2aa1b86c1509&type=yreport
+      - listitem [ref=f4e322]:
+        - link "京ICP备10036305号-7" [ref=f4e323] [cursor=pointer]:
+          - /url: https://beian.miit.gov.cn
+      - listitem [ref=f4e324]:
+        - link "京公网安备11010802047360号" [ref=f4e325] [cursor=pointer]:
+          - /url: https://beian.mps.gov.cn/#/query/webSearch?code=11010802047360
+      - listitem [ref=f4e326]:
+        - link "隐私" [ref=f4e327] [cursor=pointer]:
+          - /url: http://go.microsoft.com/fwlink/?LinkId=521839
+      - listitem [ref=f4e328]:
+        - link "条款" [ref=f4e329] [cursor=pointer]:
+          - /url: http://go.microsoft.com/fwlink/?LinkID=246338

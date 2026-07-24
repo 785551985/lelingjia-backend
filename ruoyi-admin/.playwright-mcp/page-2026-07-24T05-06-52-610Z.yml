@@ -1,0 +1,265 @@
+- generic [active] [ref=f11e1]:
+  - generic:
+    - generic:
+      - link "跳到主要内容" [ref=f11e2] [cursor=pointer]
+      - link "无障碍功能帮助" [ref=f11e3] [cursor=pointer]:
+        - /url: https://support.google.com/websearch/answer/181196?hl=zh-CN
+  - generic [ref=f11e8]:
+    - search [ref=f11e9]:
+      - generic [ref=f11e12]:
+        - link [ref=f11e13] [cursor=pointer]:
+          - /url: https://www.google.com.hk/webhp?hl=zh-CN&ictx=0&sa=X&ved=0ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4QpYkNCAo
+          - img "前往 Google 首页" [ref=f11e14]
+        - generic [ref=f11e19]:
+          - combobox "搜索" [ref=f11e22]: Ҵ󽡿 Ƽ Ҵ󽡿 Ƽ
+          - generic [ref=f11e23]:
+            - button "清除" [ref=f11e25] [cursor=pointer]
+            - generic [ref=f11e30]:
+              - button "按语音搜索" [ref=f11e31] [cursor=pointer]
+              - button "按图搜索" [ref=f11e34] [cursor=pointer]
+        - button "搜索" [ref=f11e37] [cursor=pointer]
+    - generic [ref=f11e42]:
+      - button "设置" [ref=f11e44] [cursor=pointer]
+      - button "分享" [ref=f11e50] [cursor=pointer]
+      - generic [ref=f11e56]:
+        - button "Google 应用" [ref=f11e58] [cursor=pointer]
+        - link "登录" [ref=f11e63] [cursor=pointer]:
+          - /url: https://accounts.google.com/ServiceLogin?hl=zh-CN&passive=true&continue=https://www.google.com.hk/search%3Fq%3D%25EF%25BF%25BD%25EF%25BF%25BD%25EF%25BF%25BD%25EF%25BF%25BD%25D2%25B4%25F3%25BD%25A1%25BF%25EF%25BF%25BD%25EF%25BF%25BD%25C6%25BC%25EF%25BF%25BD%26sei%3D6vJiatKCNZOA0PEP8fOBuAQ&ec=futura_srp_og_si_72236_p
+  - generic [ref=f11e65]:
+    - navigation [ref=f11e71]:
+      - generic [ref=f11e77]:
+        - list [ref=f11e78]:
+          - listitem [ref=f11e79]:
+            - link "全部" [disabled] [ref=f11e80]
+          - listitem [ref=f11e83]:
+            - link "图片" [ref=f11e84] [cursor=pointer]:
+              - /url: /search?newwindow=1&sca_esv=d1041c501f433951&udm=2&fbs=ABfTbFUhNGvvPEUFOvrsPMHwBXgOm668fbRC_a7Vhb8DCgbMq5qkXH1ll5RuIouPLh5wQpv2NH08xK2bNi_ui2XCXQhO25kEIQTHeh2iU16bUTvtp96_DXUwR_8ACTWq5N12dk79lp42svMk48p_Hbw8ga441VfBGhJEXomj3GupNl7HQSyIT8I&q=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B4%F3%BD%A1%BF%EF%BF%BD%EF%BF%BD%C6%BC%EF%BF%BD&sa=X&ved=2ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4QtKgLegQIFRAB
+          - listitem [ref=f11e87]:
+            - link "视频" [ref=f11e88] [cursor=pointer]:
+              - /url: /search?newwindow=1&sca_esv=d1041c501f433951&udm=7&fbs=ABfTbFUhNGvvPEUFOvrsPMHwBXgOm668fbRC_a7Vhb8DCgbMq5qkXH1ll5RuIouPLh5wQpv2NH08xK2bNi_ui2XCXQhO25kEIQTHeh2iU16bUTvtp96_DXUwR_8ACTWq5N12dk79lp42svMk48p_Hbw8ga441VfBGhJEXomj3GupNl7HQSyIT8I&q=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B4%F3%BD%A1%BF%EF%BF%BD%EF%BF%BD%C6%BC%EF%BF%BD&sa=X&ved=2ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4QtKgLegQIFhAB
+          - listitem [ref=f11e91]:
+            - link "新闻" [ref=f11e92] [cursor=pointer]:
+              - /url: /search?newwindow=1&sca_esv=d1041c501f433951&q=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B4%F3%BD%A1%BF%EF%BF%BD%EF%BF%BD%C6%BC%EF%BF%BD&tbm=nws&source=lnms&fbs=ABfTbFUhNGvvPEUFOvrsPMHwBXgOm668fbRC_a7Vhb8DCgbMq5qkXH1ll5RuIouPLh5wQpv2NH08xK2bNi_ui2XCXQhO25kEIQTHeh2iU16bUTvtp96_DXUwR_8ACTWq5N12dk79lp42svMk48p_Hbw8ga441VfBGhJEXomj3GupNl7HQSyIT8I&sa=X&ved=2ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4Q0pQJegQIFxAB
+          - listitem [ref=f11e95]:
+            - link "短视频" [ref=f11e96] [cursor=pointer]:
+              - /url: /search?newwindow=1&sca_esv=d1041c501f433951&udm=39&fbs=ABfTbFUhNGvvPEUFOvrsPMHwBXgOm668fbRC_a7Vhb8DCgbMq5qkXH1ll5RuIouPLh5wQpv2NH08xK2bNi_ui2XCXQhO25kEIQTHeh2iU16bUTvtp96_DXUwR_8ACTWq5N12dk79lp42svMk48p_Hbw8ga441VfBGhJEXomj3GupNl7HQSyIT8I&q=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B4%F3%BD%A1%BF%EF%BF%BD%EF%BF%BD%C6%BC%EF%BF%BD&sa=X&ved=2ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4Qs6gLegQIFBAB
+          - listitem [ref=f11e99]:
+            - link "图书" [ref=f11e100] [cursor=pointer]:
+              - /url: /search?newwindow=1&sca_esv=d1041c501f433951&q=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B4%F3%BD%A1%BF%EF%BF%BD%EF%BF%BD%C6%BC%EF%BF%BD&udm=36&source=lnms&fbs=ABfTbFUhNGvvPEUFOvrsPMHwBXgOm668fbRC_a7Vhb8DCgbMq5qkXH1ll5RuIouPLh5wQpv2NH08xK2bNi_ui2XCXQhO25kEIQTHeh2iU16bUTvtp96_DXUwR_8ACTWq5N12dk79lp42svMk48p_Hbw8ga441VfBGhJEXomj3GupNl7HQSyIT8I&sa=X&ved=2ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4Q0pQJegQIEhAB
+          - listitem [ref=f11e103]:
+            - link "网页" [ref=f11e104] [cursor=pointer]:
+              - /url: /search?newwindow=1&sca_esv=d1041c501f433951&udm=web&fbs=ABfTbFUhNGvvPEUFOvrsPMHwBXgOm668fbRC_a7Vhb8DCgbMq5qkXH1ll5RuIouPLh5wQpv2NH08xK2bNi_ui2XCXQhO25kEIQTHeh2iU16bUTvtp96_DXUwR_8ACTWq5N12dk79lp42svMk48p_Hbw8ga441VfBGhJEXomj3GupNl7HQSyIT8I&q=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B4%F3%BD%A1%BF%EF%BF%BD%EF%BF%BD%C6%BC%EF%BF%BD&sa=X&ved=2ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4Qs6gLegQIExAB
+          - listitem [ref=f11e107]:
+            - button [ref=f11e108] [cursor=pointer]:
+              - generic "更多过滤条件" [ref=f11e109]: 更多
+        - button "工具" [ref=f11e116] [cursor=pointer]
+    - heading "搜索结果" [level=1] [ref=f11e123]
+    - main [ref=f11e129]:
+      - generic [ref=f11e133]:
+        - generic [ref=f11e136]:
+          - heading "Web results" [level=2] [ref=f11e137]
+          - generic [ref=f11e138]:
+            - generic [ref=f11e141]:
+              - link "Tone five Wikipedia https://en.wikipedia.org › wiki › Tone_five" [ref=f11e143] [cursor=pointer]:
+                - /url: https://en.wikipedia.org/wiki/Tone_five
+                - heading "Tone five" [level=3] [ref=f11e144]
+                - generic [ref=f11e150]:
+                  - generic [ref=f11e151]: Wikipedia
+                  - generic [ref=f11e153]: https://en.wikipedia.org › wiki › Tone_five
+              - generic [ref=f11e155]:
+                - generic [ref=f11e156]: ·
+                - link "翻译此页" [ref=f11e157] [cursor=pointer]:
+                  - /url: https://en.wikipedia.org/wiki/Tone_five
+              - button "关于这条结果的详细信息" [ref=f11e160] [cursor=pointer]
+            - generic [ref=f11e167]:
+              - text: "Ƽ (minuscule: ƽ) was"
+              - emphasis [ref=f11e168]: a letter of the Latin alphabet
+              - text: used in the Zhuang alphabet from 1957 to 1986 to indicate its fifth tone, high-rising [˧˥].
+        - generic [ref=f11e172]:
+          - generic [ref=f11e175]:
+            - link "ҵ Wiktionary, the free dictionary https://en.wiktionary.org › wiki › ҵ" [ref=f11e177] [cursor=pointer]:
+              - /url: https://en.wiktionary.org/wiki/%D2%B5
+              - heading "ҵ" [level=3] [ref=f11e178]
+              - generic [ref=f11e184]:
+                - generic [ref=f11e185]: Wiktionary, the free dictionary
+                - generic [ref=f11e187]: https://en.wiktionary.org › wiki › ҵ
+            - generic [ref=f11e189]:
+              - generic [ref=f11e190]: ·
+              - link "翻译此页" [ref=f11e191] [cursor=pointer]:
+                - /url: https://en.wiktionary.org/wiki/%D2%B5
+            - button "关于这条结果的详细信息" [ref=f11e194] [cursor=pointer]
+          - generic [ref=f11e201]:
+            - emphasis [ref=f11e202]: ҵ
+            - text: • (cʼ) (lower case, upper case
+            - emphasis [ref=f11e203]: Ҵ
+            - text: ). A letter of the Abkhaz alphabet, written in the Cyrillic script. See also. (Cyrillic-script letters) А а, Б б, В в, ...
+        - generic [ref=f11e207]:
+          - generic [ref=f11e210]:
+            - link "ƽ • latin small letter tone five (U+01BD) ... Graphemica https://graphemica.com › ƽ" [ref=f11e212] [cursor=pointer]:
+              - /url: https://graphemica.com/%C6%BD
+              - heading "ƽ • latin small letter tone five (U+01BD) ..." [level=3] [ref=f11e213]
+              - generic [ref=f11e219]:
+                - generic [ref=f11e220]: Graphemica
+                - generic [ref=f11e222]: https://graphemica.com › ƽ
+            - generic [ref=f11e224]:
+              - generic [ref=f11e225]: ·
+              - link "翻译此页" [ref=f11e226] [cursor=pointer]:
+                - /url: https://graphemica.com/%C6%BD
+            - button "关于这条结果的详细信息" [ref=f11e229] [cursor=pointer]
+          - generic [ref=f11e236]:
+            - text: ƽ (Latin Small Letter Tone Five, U+01BD)
+            - emphasis [ref=f11e237]: is a specialized phonetic symbol used primarily in sinology and linguistic transcription
+            - text: to denote the fifth, ...
+        - generic [ref=f11e241]:
+          - generic [ref=f11e244]:
+            - link "Unicode Character “Ƽ” (U+01BC) Compart https://www.compart.com › unicode" [ref=f11e246] [cursor=pointer]:
+              - /url: https://www.compart.com/en/unicode/U+01BC
+              - heading "Unicode Character “Ƽ” (U+01BC)" [level=3] [ref=f11e247]
+              - generic [ref=f11e253]:
+                - generic [ref=f11e254]: Compart
+                - generic [ref=f11e256]: https://www.compart.com › unicode
+            - generic [ref=f11e258]:
+              - generic [ref=f11e259]: ·
+              - link "翻译此页" [ref=f11e260] [cursor=pointer]:
+                - /url: https://www.compart.com/en/unicode/U+01BC
+            - button "关于这条结果的详细信息" [ref=f11e263] [cursor=pointer]
+          - generic [ref=f11e270]:
+            - emphasis [ref=f11e271]: Unicode Character “Ƽ”
+            - text: "(U+01BC). Ƽ. Name: Latin Capital Letter Tone Five. Unicode Version: 1.1 (June 1993). Block: Latin Extended-B, U+0180 - U+024F."
+        - generic [ref=f11e275]:
+          - generic [ref=f11e278]:
+            - link "ƽ - Unicodes Unicodes https://unicodes.jessetane.com › ƽ" [ref=f11e280] [cursor=pointer]:
+              - /url: https://unicodes.jessetane.com/%C6%BD
+              - heading "ƽ - Unicodes" [level=3] [ref=f11e281]
+              - generic [ref=f11e287]:
+                - generic [ref=f11e288]: Unicodes
+                - generic [ref=f11e290]: https://unicodes.jessetane.com › ƽ
+            - generic [ref=f11e292]:
+              - generic [ref=f11e293]: ·
+              - link "翻译此页" [ref=f11e294] [cursor=pointer]:
+                - /url: https://unicodes.jessetane.com/%C6%BD
+            - button "关于这条结果的详细信息" [ref=f11e297] [cursor=pointer]
+          - generic [ref=f11e304]:
+            - text: Name,
+            - emphasis [ref=f11e305]: LATIN SMALL LETTER TONE FIVE
+            - text: ; Description, a lowercase letter ; Block, Latin Extended-B ; Unicode, U+01BD ; UTF-8, 0xC6 0xBD.
+        - generic [ref=f11e309]:
+          - generic [ref=f11e312]:
+            - link "L2/19-201 Unicode – The World Standard for Text and Emoji https://www.unicode.org › 19201-correct-tone-six" [ref=f11e314] [cursor=pointer]:
+              - /url: https://www.unicode.org/L2/L2019/19201-correct-tone-six.pdf
+              - heading "L2/19-201" [level=3] [ref=f11e315]
+              - generic [ref=f11e321]:
+                - generic [ref=f11e322]: Unicode – The World Standard for Text and Emoji
+                - generic [ref=f11e324]: https://www.unicode.org › 19201-correct-tone-six
+            - generic [ref=f11e326]: PDF
+            - button "关于这条结果的详细信息" [ref=f11e329] [cursor=pointer]
+          - generic [ref=f11e334]:
+            - generic [ref=f11e335]:
+              - generic [ref=f11e336]: 2019年5月14日 —
+              - text: In 1957 the People's Republic of China introduced an alphabetical script for the Zhuang language. The alphabet included some uncommon ...
+            - generic [ref=f11e337]: 5 页
+        - generic [ref=f11e341]:
+          - generic [ref=f11e344]:
+            - link "Ƽ - Wikipedia, la enciclopedia libre Wikipedia https://es.wikipedia.org › wiki › Ƽ" [ref=f11e346] [cursor=pointer]:
+              - /url: https://es.wikipedia.org/wiki/%C6%BC
+              - heading "Ƽ - Wikipedia, la enciclopedia libre" [level=3] [ref=f11e347]
+              - generic [ref=f11e353]:
+                - generic [ref=f11e354]: Wikipedia
+                - generic [ref=f11e356]: https://es.wikipedia.org › wiki › Ƽ
+            - generic [ref=f11e358]:
+              - generic [ref=f11e359]: ·
+              - link "翻译此页" [ref=f11e360] [cursor=pointer]:
+                - /url: https://es.wikipedia.org/wiki/%C6%BC
+            - button "关于这条结果的详细信息" [ref=f11e363] [cursor=pointer]
+          - generic [ref=f11e370]:
+            - text: "Ƽ ( minúsculo : ƽ ) llamada quinto tono es una"
+            - emphasis [ref=f11e371]: letra del alfabeto latino utilizada en el alfabeto Zhuang
+            - text: desde 1957 hasta 1986 para indicar su quinto tono, ...
+        - generic [ref=f11e375]:
+          - generic [ref=f11e378]:
+            - link "ƽ Wiktionary, the free dictionary https://en.wiktionary.org › wiki › ƽ" [ref=f11e380] [cursor=pointer]:
+              - /url: https://en.wiktionary.org/wiki/%C6%BD
+              - heading "ƽ" [level=3] [ref=f11e381]
+              - generic [ref=f11e387]:
+                - generic [ref=f11e388]: Wiktionary, the free dictionary
+                - generic [ref=f11e390]: https://en.wiktionary.org › wiki › ƽ
+            - generic [ref=f11e392]:
+              - generic [ref=f11e393]: ·
+              - link "翻译此页" [ref=f11e394] [cursor=pointer]:
+                - /url: https://en.wiktionary.org/wiki/%C6%BD
+            - button "关于这条结果的详细信息" [ref=f11e397] [cursor=pointer]
+          - generic [ref=f11e404]:
+            - text: Letter.
+            - emphasis [ref=f11e405]: ƽ
+            - text: (lower case, upper case
+            - emphasis [ref=f11e406]: Ƽ
+            - text: ). 1957–1982 spelling of ...
+        - generic [ref=f11e410]:
+          - generic [ref=f11e413]:
+            - link "无主题 Kansas Sampler Foundation https://kansassampler.org › symbols › symbols" [ref=f11e415] [cursor=pointer]:
+              - /url: https://kansassampler.org/adminpanel/contentbuilder/plugins/symbols/symbols.html
+              - heading "无主题" [level=3] [ref=f11e416]
+              - generic [ref=f11e425]:
+                - generic [ref=f11e426]: Kansas Sampler Foundation
+                - generic [ref=f11e428]: https://kansassampler.org › symbols › symbols
+            - generic [ref=f11e430]:
+              - generic [ref=f11e431]: ·
+              - link "翻译此页" [ref=f11e432] [cursor=pointer]:
+                - /url: https://kansassampler.org/adminpanel/contentbuilder/plugins/symbols/symbols.html
+            - button "关于这条结果的详细信息" [ref=f11e435] [cursor=pointer]
+          - generic [ref=f11e442]:
+            - emphasis [ref=f11e443]: Ҵ
+            - text: .
+            - emphasis [ref=f11e444]: ҵ
+            - text: . Ҷ. ҷ. Ҹ. ҹ. Һ. һ. Ҽ. ҽ. Ҿ. ҿ. Ӏ. Ӂ. ӂ. Ӄ. ӄ. Ӆ. ӆ. Ӈ. ӈ. Ӊ. ӊ. Ӌ. ӌ. Ӎ. ӎ. ӏ. Ӑ. ӑ. Ӓ. ӓ. Ӕ. ӕ ...
+            - emphasis [ref=f11e445]: Ƽ
+            - text: .
+            - emphasis [ref=f11e446]: ƽ
+            - text: . ƾ. ƿ. ǀ. ǁ. ǂ. ǃ. Ǆ. ǅ. ǆ. Ǉ. ǈ. ǉ. Ǌ. ǋ. ǌ. Ǎ. ǎ.
+        - generic [ref=f11e450]:
+          - generic [ref=f11e453]:
+            - link "Пятый тон (буква) Википедия https://ru.wikipedia.org › wiki › Пятый_то..." [ref=f11e455] [cursor=pointer]:
+              - /url: https://ru.wikipedia.org/wiki/%D0%9F%D1%8F%D1%82%D1%8B%D0%B9_%D1%82%D0%BE%D0%BD_(%D0%B1%D1%83%D0%BA%D0%B2%D0%B0)
+              - heading "Пятый тон (буква)" [level=3] [ref=f11e456]
+              - generic [ref=f11e462]:
+                - generic [ref=f11e463]: Википедия
+                - generic [ref=f11e465]: https://ru.wikipedia.org › wiki › Пятый_то...
+            - generic [ref=f11e467]:
+              - generic [ref=f11e468]: ·
+              - link "翻译此页" [ref=f11e469] [cursor=pointer]:
+                - /url: https://ru.wikipedia.org/wiki/%D0%9F%D1%8F%D1%82%D1%8B%D0%B9_%D1%82%D0%BE%D0%BD_(%D0%B1%D1%83%D0%BA%D0%B2%D0%B0)
+            - button "关于这条结果的详细信息" [ref=f11e472] [cursor=pointer]
+          - generic [ref=f11e479]:
+            - text: Ƽ, ƽ (пятый тон) —
+            - emphasis [ref=f11e480]: буква расширенной латиницы
+            - text: . Использовалась в смешанном чжуанском алфавите с 1957 по 1986 годы. Буква латиницы пятый тон. Ƽƽ. Изображение
+      - navigation [ref=f11e483]:
+        - heading "网页导航" [level=1] [ref=f11e484]
+        - text: "1"
+        - link "Page 2" [ref=f11e487] [cursor=pointer]:
+          - /url: /search?q=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B4%F3%BD%A1%BF%EF%BF%BD%EF%BF%BD%C6%BC%EF%BF%BD&newwindow=1&sca_esv=d1041c501f433951&ei=6_Jiao-jE7Ll0PEPlfHZ8QI&start=10&sa=N&sstk=AU9db-BuNE3CQiNNECpJbD2viFgKxymUrCyoTF4x9ZQ2t3RPZ0WE3A5Q5XZE8L8F47SODUsNq_aNvyAx7rBRTZTEazGFjoD-ljy0uA&ved=2ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4Q8tMDegQIMRAE
+          - text: "2"
+        - heading [level=2] [ref=f11e489]:
+          - link "下一页" [ref=f11e490] [cursor=pointer]:
+            - /url: /search?q=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%D2%B4%F3%BD%A1%BF%EF%BF%BD%EF%BF%BD%C6%BC%EF%BF%BD&newwindow=1&sca_esv=d1041c501f433951&ei=6_Jiao-jE7Ll0PEPlfHZ8QI&start=10&sa=N&sstk=AU9db-BuNE3CQiNNECpJbD2viFgKxymUrCyoTF4x9ZQ2t3RPZ0WE3A5Q5XZE8L8F47SODUsNq_aNvyAx7rBRTZTEazGFjoD-ljy0uA&ved=2ahUKEwjPxJy5xeqVAxWyMjQIHZV4Ni4Q8NMDegQIMRAG
+      - navigation
+    - contentinfo [ref=f11e493]:
+      - heading "页脚链接" [level=1] [ref=f11e494]
+      - generic [ref=f11e498]:
+        - generic [ref=f11e502]:
+          - button "深圳市 中国广东省 - 是根据您的 IP 地址推断出来的" [ref=f11e504] [cursor=pointer]:
+            - generic [ref=f11e505]: 深圳市 中国广东省
+            - generic [ref=f11e507]:
+              - text: "-"
+              - generic [ref=f11e508]: 是根据您的 IP 地址推断出来的
+          - text: "-"
+          - button "更新位置信息" [ref=f11e510] [cursor=pointer]
+        - generic [ref=f11e513]:
+          - link "帮助" [ref=f11e514] [cursor=pointer]:
+            - /url: https://support.google.com/websearch/?p=ws_results_help&hl=zh-CN&fg=1
+          - link "发送反馈" [ref=f11e515] [cursor=pointer]:
+            - /url: "#"
+          - link "隐私权" [ref=f11e516] [cursor=pointer]:
+            - /url: https://policies.google.com/privacy?hl=zh-CN&fg=1
+          - link "条款" [ref=f11e517] [cursor=pointer]:
+            - /url: https://policies.google.com/terms?hl=zh-CN&fg=1

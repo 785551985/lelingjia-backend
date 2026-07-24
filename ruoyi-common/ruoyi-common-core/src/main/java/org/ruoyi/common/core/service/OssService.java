@@ -37,6 +37,16 @@ public interface OssService {
     OssDTO uploadFile(MultipartFile file);
 
     /**
+     * 上传 MultipartFile 到指定 OSS 配置的指定前缀路径
+     *
+     * @param file      上传的文件
+     * @param configKey OSS 配置 key（如 "minio-kb"）
+     * @param prefix    自定义路径前缀（如 "000000/103/5001"）
+     * @return OssDTO
+     */
+    OssDTO uploadFile(MultipartFile file, String configKey, String prefix);
+
+    /**
      * Upload a server-side file without buffering the complete payload in memory.
      */
     OssDTO uploadFile(File file);

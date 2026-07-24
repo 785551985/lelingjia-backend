@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.ruoyi.domain.bo.chat.ChatSessionBo;
 import org.ruoyi.domain.entity.chat.ChatSession;
 import org.ruoyi.mapper.chat.ChatSessionMapper;
+import org.ruoyi.service.chat.IChatMessageService;
 import org.ruoyi.service.chat.IChatSessionService;
 import org.springframework.stereotype.Service;
 import org.ruoyi.domain.vo.chat.ChatSessionVo;
@@ -31,6 +32,7 @@ import java.util.Collection;
 public class ChatSessionServiceImpl implements IChatSessionService {
 
     private final ChatSessionMapper baseMapper;
+    private final IChatMessageService chatMessageService;
 
     /**
      * 查询会话管理
@@ -128,6 +130,11 @@ public class ChatSessionServiceImpl implements IChatSessionService {
     public Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid) {
         if(isValid){
             //TODO 做一些业务上的校验,判断是否需要校验
+        }
+        if (ids != null && !ids.isEmpty()) {
+            for (Long id : ids) {
+                chatMessageService.deleteBySessionId(id);
+            }
         }
         return baseMapper.deleteByIds(ids) > 0;
     }

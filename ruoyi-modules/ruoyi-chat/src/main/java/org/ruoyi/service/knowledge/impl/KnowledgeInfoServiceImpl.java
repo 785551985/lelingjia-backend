@@ -99,6 +99,34 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
         lqw.eq(bo.getTextBlockSize() != null, KnowledgeInfo::getTextBlockSize, bo.getTextBlockSize());
         lqw.eq(StringUtils.isNotBlank(bo.getVectorModel()), KnowledgeInfo::getVectorModel, bo.getVectorModel());
         lqw.eq(StringUtils.isNotBlank(bo.getEmbeddingModel()), KnowledgeInfo::getEmbeddingModel, bo.getEmbeddingModel());
+
+        // 作用域与数据权限隔离：若非超级管理员，自动限定当前员工可见的知识库范围
+        try {
+            if (!org.ruoyi.common.satoken.utils.LoginHelper.isSuperAdmin()) {
+                Long deptId = org.ruoyi.common.satoken.utils.LoginHelper.getDeptId();
+                Long userId = org.ruoyi.common.satoken.utils.LoginHelper.getUserId();
+
+                lqw.and(wrapper -> {
+                    // 1. 集团级全局公共库 (scope_level = 1)
+                    wrapper.eq(KnowledgeInfo::getScopeLevel, 1);
+
+                    // 2. 机构/部门级知识库 (scope_level = 2 或 3，且 deptScope 包含员工的部门 ID)
+                    if (deptId != null) {
+                        wrapper.or(w -> w.in(KnowledgeInfo::getScopeLevel, List.of(2, 3))
+                            .apply("(dept_scope IS NULL OR dept_scope = '' OR dept_scope LIKE {0})", "%" + deptId + "%"));
+                    }
+
+                    // 3. 个人专属私有库 (scope_level = 4 且 user_id 匹配)
+                    if (userId != null) {
+                        wrapper.or(w -> w.eq(KnowledgeInfo::getScopeLevel, 4).eq(KnowledgeInfo::getUserId, userId));
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("构建知识库作用域过滤条件时未获取到登录上下文, 将仅展示公共库", e.getMessage());
+            lqw.eq(KnowledgeInfo::getScopeLevel, 1);
+        }
+
         return lqw;
     }
 

@@ -209,8 +209,16 @@ public class ChatMessageServiceImpl implements IChatMessageService {
             messageBo.setRole(role);
             messageBo.setModelName(modelName);
 
+            // 自动统计并记录 Token 消耗（中英文混合场景下估算，1汉字/字符约1.2 Tokens，至少为 1）
+            if (StringUtils.isNotBlank(content)) {
+                long estimatedTokens = Math.max(1L, (long) Math.ceil(content.trim().length() * 1.2));
+                messageBo.setTotalTokens(estimatedTokens);
+            } else {
+                messageBo.setTotalTokens(0L);
+            }
+
             insertByBo(messageBo);
-            log.debug("保存聊天消息成功，角色: {}, 会话: {}", role, sessionId);
+            log.debug("保存聊天消息成功，角色: {}, 会话: {}, Tokens: {}", role, sessionId, messageBo.getTotalTokens());
         } catch (Exception e) {
             log.error("保存聊天消息时出错: {}", e.getMessage(), e);
         }

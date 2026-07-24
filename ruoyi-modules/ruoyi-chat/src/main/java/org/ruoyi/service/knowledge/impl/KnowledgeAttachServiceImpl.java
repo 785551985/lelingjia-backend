@@ -46,6 +46,7 @@ import org.ruoyi.service.knowledge.ResourceLoader;
 import org.ruoyi.service.knowledge.DocumentSplitConfig;
 import org.ruoyi.service.vector.VectorStoreService;
 import org.ruoyi.service.retrieval.KnowledgeRetrievalService;
+import org.ruoyi.common.satoken.utils.LoginHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -198,28 +199,64 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
     @Override
     public void upload(KnowledgeInfoUploadBo bo) {
         MultipartFile file = bo.getFile();
+        String originalName = file.getOriginalFilename();
+
+        // 1. 计算文件内容 SHA-256 哈希
         final String fileHash;
         try (InputStream input = file.getInputStream()) {
             fileHash = DigestUtil.sha256Hex(input);
         } catch (Exception e) {
             throw new ServiceException("计算文件摘要失败", e);
         }
-        boolean duplicate = baseMapper.exists(Wrappers.<KnowledgeAttach>lambdaQuery()
-            .eq(KnowledgeAttach::getKnowledgeId, bo.getKnowledgeId())
-            .eq(KnowledgeAttach::getFileHash, fileHash));
-        if (duplicate) {
-            throw new ServiceException("该文件已上传，请勿重复提交");
+
+        // 2. 检查同名文件是否已存在（更新场景：同名不同内容 → 删旧存新）
+        KnowledgeAttach existing = baseMapper.selectOne(
+            Wrappers.<KnowledgeAttach>lambdaQuery()
+                .eq(KnowledgeAttach::getKnowledgeId, bo.getKnowledgeId())
+                .eq(KnowledgeAttach::getName, originalName)
+                .eq(KnowledgeAttach::getEffectiveStatus, "latest")
+                .last("LIMIT 1")
+        );
+
+        if (existing != null) {
+            if (fileHash.equals(existing.getFileHash())) {
+                // 同名同内容 → 内容无变化，直接拒绝
+                throw new ServiceException("该文件已上传且内容未变更，请勿重复提交");
+            }
+            // 同名不同内容 → 删除旧版本（MinIO文件 + 向量数据 + 数据库记录）
+            log.info("检测到同名文件更新，删除旧版本: id={}, name={}", existing.getId(), originalName);
+            SpringUtils.getBean(IKnowledgeAttachService.class)
+                .deleteWithValidByIds(List.of(existing.getId()), false);
+        } else {
+            // 不同名但内容相同 → 真正的重复文件，拒绝
+            boolean duplicate = baseMapper.exists(
+                Wrappers.<KnowledgeAttach>lambdaQuery()
+                    .eq(KnowledgeAttach::getKnowledgeId, bo.getKnowledgeId())
+                    .eq(KnowledgeAttach::getFileHash, fileHash)
+            );
+            if (duplicate) {
+                throw new ServiceException("该文件内容已存在于知识库中，请勿重复提交");
+            }
         }
+
+        // 3. 构建存储路径前缀：tenantId/deptId/knowledgeId
+        String tenantId = LoginHelper.getTenantId();
+        Long deptId = LoginHelper.getDeptId();
+        String prefix = tenantId + "/" + deptId + "/" + bo.getKnowledgeId();
+
+        // 4. 上传文件到系统 OSS
         OssDTO ossDTO = ossService.uploadFile(file);
 
+        // 5. 保存附件记录
         KnowledgeAttach knowledgeAttach = new KnowledgeAttach();
         knowledgeAttach.setKnowledgeId(bo.getKnowledgeId());
         knowledgeAttach.setOssId(ossDTO.getOssId());
         knowledgeAttach.setDocId(RandomUtil.randomString(10));
         knowledgeAttach.setFileHash(fileHash);
-        knowledgeAttach.setName(ossDTO.getOriginalName());
+        knowledgeAttach.setName(originalName);
         knowledgeAttach.setType(ossDTO.getFileSuffix());
-        knowledgeAttach.setStatus(KnowledgeAttachStatus.WAITING.getCode()); // 待解析
+        knowledgeAttach.setEffectiveStatus("latest");
+        knowledgeAttach.setStatus(KnowledgeAttachStatus.WAITING.getCode());
 
         baseMapper.insert(knowledgeAttach);
 

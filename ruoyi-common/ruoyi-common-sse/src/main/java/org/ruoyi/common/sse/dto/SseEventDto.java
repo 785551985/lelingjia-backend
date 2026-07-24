@@ -91,6 +91,16 @@ public class SseEventDto implements Serializable {
     }
 
     /**
+     * 创建参考来源事件
+     */
+    public static SseEventDto sources(String sourcesJson) {
+        return SseEventDto.builder()
+            .event("sources")
+            .content(sourcesJson)
+            .build();
+    }
+
+    /**
      * 创建 MCP 工具事件
      */
     public static SseEventDto mcpTool(String toolName, String status, String result) {
