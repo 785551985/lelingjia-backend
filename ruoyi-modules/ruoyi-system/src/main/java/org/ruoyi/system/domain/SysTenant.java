@@ -50,6 +50,11 @@ public class SysTenant extends BaseEntity {
     private String companyName;
 
     /**
+     * 企业架构类型 (GROUP:集团级, INST:单体机构)
+     */
+    private String tenantCategory;
+
+    /**
      * 统一社会信用代码
      */
     private String licenseNumber;

@@ -1,6 +1,8 @@
 package org.ruoyi.controller.agent;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.ruoyi.common.core.domain.R;
@@ -43,7 +45,7 @@ public class AgentController extends BaseController {
     /**
      * 分页查询智能体列表
      */
-    @SaCheckPermission("agent:agent:list")
+    @SaCheckLogin
     @GetMapping("/list")
     public TableDataInfo<AgentVo> list(AgentBo bo, PageQuery pageQuery) {
         return agentService.queryPageList(bo, pageQuery);

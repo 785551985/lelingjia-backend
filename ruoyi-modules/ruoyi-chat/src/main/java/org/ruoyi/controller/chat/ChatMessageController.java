@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.*;
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import org.ruoyi.common.chat.domain.bo.chat.ChatMessageBo;
 import org.ruoyi.common.chat.domain.vo.chat.ChatMessageVo;
@@ -39,7 +40,7 @@ public class ChatMessageController extends BaseController {
     /**
      * 查询聊天消息列表
      */
-    @SaCheckPermission("system:message:list")
+    @SaCheckLogin
     @GetMapping("/list")
     public TableDataInfo<ChatMessageVo> list(ChatMessageBo bo, PageQuery pageQuery) {
         return chatMessageService.queryPageList(bo, pageQuery);

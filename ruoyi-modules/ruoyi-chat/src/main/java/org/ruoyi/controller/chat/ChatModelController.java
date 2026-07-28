@@ -5,7 +5,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.*;
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import org.ruoyi.common.chat.service.chat.IChatModelService;
 import org.ruoyi.common.chat.domain.bo.chat.ChatModelBo;
 import org.ruoyi.common.chat.domain.bo.chat.ModelBatchKeyBo;
@@ -45,7 +47,7 @@ public class ChatModelController extends BaseController {
     /**
      * 查询模型管理列表
      */
-    @SaCheckPermission("system:model:list")
+    @SaCheckLogin
     @GetMapping("/list")
     public TableDataInfo<ChatModelVo> list(ChatModelBo bo, PageQuery pageQuery) {
         return chatModelService.queryPageList(bo, pageQuery);

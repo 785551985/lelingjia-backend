@@ -3,6 +3,7 @@ package org.ruoyi.system.controller.system;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import cn.hutool.core.util.ObjectUtil;
 import org.ruoyi.common.core.domain.R;
 import org.ruoyi.common.core.validate.QueryGroup;
@@ -54,7 +55,7 @@ public class SysOssController extends BaseController {
      *
      * @param ossIds OSS对象ID串
      */
-    @SaCheckPermission("system:oss:query")
+    @SaCheckPermission(value = {"system:oss:query", "system:info:list", "system:attach:list"}, mode = SaMode.OR)
     @GetMapping("/listByIds/{ossIds}")
     public R<List<SysOssVo>> listByIds(@NotEmpty(message = "主键不能为空")
                                        @PathVariable Long[] ossIds) {

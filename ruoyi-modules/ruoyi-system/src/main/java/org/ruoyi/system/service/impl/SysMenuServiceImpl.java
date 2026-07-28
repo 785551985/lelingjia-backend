@@ -13,9 +13,12 @@ import org.ruoyi.common.core.utils.StreamUtils;
 import org.ruoyi.common.core.utils.StringUtils;
 import org.ruoyi.common.core.utils.TreeBuildUtils;
 import org.ruoyi.common.satoken.utils.LoginHelper;
+import org.ruoyi.common.core.constant.TenantConstants;
+import org.ruoyi.common.tenant.helper.TenantHelper;
 import org.ruoyi.system.domain.SysMenu;
 import org.ruoyi.system.domain.SysRole;
 import org.ruoyi.system.domain.SysRoleMenu;
+import org.ruoyi.system.domain.SysTenant;
 import org.ruoyi.system.domain.SysTenantPackage;
 import org.ruoyi.system.domain.bo.SysMenuBo;
 import org.ruoyi.system.domain.vo.MetaVo;
@@ -24,6 +27,7 @@ import org.ruoyi.system.domain.vo.SysMenuVo;
 import org.ruoyi.system.mapper.SysMenuMapper;
 import org.ruoyi.system.mapper.SysRoleMapper;
 import org.ruoyi.system.mapper.SysRoleMenuMapper;
+import org.ruoyi.system.mapper.SysTenantMapper;
 import org.ruoyi.system.mapper.SysTenantPackageMapper;
 import org.ruoyi.system.service.ISysMenuService;
 import org.springframework.stereotype.Service;
@@ -44,6 +48,7 @@ public class SysMenuServiceImpl implements ISysMenuService {
     private final SysRoleMapper roleMapper;
     private final SysRoleMenuMapper roleMenuMapper;
     private final SysTenantPackageMapper tenantPackageMapper;
+    private final SysTenantMapper tenantMapper;
 
     /**
      * 根据用户查询系统菜单列表
@@ -66,11 +71,38 @@ public class SysMenuServiceImpl implements ISysMenuService {
     public List<SysMenuVo> selectMenuList(SysMenuBo menu, Long userId) {
         List<SysMenuVo> menuList;
         LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
-        // 管理员显示所有菜单信息 不是管理员 按用户id过滤菜单
-        if (!LoginHelper.isSuperAdmin(userId)) {
-            // 通过用户id获取角色id 通过角色id获取菜单id 然后in菜单
+        
+        // 租户视角隔离：非 000000 平台租户，强制过滤只能查看当前租户套餐内的合法菜单，且彻底切除平台独占菜单
+        String tenantId = TenantHelper.getTenantId();
+        if (StringUtils.isNotBlank(tenantId) && !TenantConstants.DEFAULT_TENANT_ID.equals(tenantId)) {
+            // 物理防线：非平台租户绝对隔离【租户管理】、【租户套餐】、【系统监控】、【系统工具】、【代码生成】等平台专属菜单目录
+            wrapper.notIn(SysMenu::getMenuId, 2L, 3L, 6L)
+                   .notIn(SysMenu::getMenuName, "租户管理", "租户套餐管理", "系统监控", "系统工具", "代码生成", "客户端管理")
+                   .notLike(SysMenu::getPerms, "system:tenant")
+                   .notLike(SysMenu::getPerms, "system:tenantPackage")
+                   .notLike(SysMenu::getPerms, "system:client")
+                   .notLike(SysMenu::getPerms, "tool:")
+                   .notLike(SysMenu::getPerms, "monitor:");
+
+            SysTenant tenant = tenantMapper.selectOne(new LambdaQueryWrapper<SysTenant>().eq(SysTenant::getTenantId, tenantId));
+            if (ObjectUtil.isNotNull(tenant) && ObjectUtil.isNotNull(tenant.getPackageId())) {
+                SysTenantPackage tenantPackage = tenantPackageMapper.selectById(tenant.getPackageId());
+                if (ObjectUtil.isNotNull(tenantPackage)) {
+                    List<Long> packageMenuIds = StringUtils.splitTo(tenantPackage.getMenuIds(), Convert::toLong);
+                    if (CollUtil.isNotEmpty(packageMenuIds)) {
+                        wrapper.in(SysMenu::getMenuId, packageMenuIds);
+                    } else {
+                        return new ArrayList<>();
+                    }
+                }
+            }
+            if (!(LoginHelper.isSuperAdmin(userId) || LoginHelper.isTenantAdmin())) {
+                wrapper.inSql(SysMenu::getMenuId, baseMapper.buildMenuByUserSql(userId));
+            }
+        } else if (!(LoginHelper.isSuperAdmin(userId) || LoginHelper.isTenantAdmin())) {
             wrapper.inSql(SysMenu::getMenuId, baseMapper.buildMenuByUserSql(userId));
         }
+
         menuList = baseMapper.selectVoList(
             wrapper.like(StringUtils.isNotBlank(menu.getMenuName()), SysMenu::getMenuName, menu.getMenuName())
                 .eq(StringUtils.isNotBlank(menu.getVisible()), SysMenu::getVisible, menu.getVisible())
@@ -113,16 +145,46 @@ public class SysMenuServiceImpl implements ISysMenuService {
     @Override
     public List<SysMenu> selectMenuTreeByUserId(Long userId) {
         List<SysMenu> menus;
-        if (LoginHelper.isSuperAdmin(userId)) {
+        String tenantId = TenantHelper.getTenantId();
+        boolean isPlatformTenant = StringUtils.isBlank(tenantId) || TenantConstants.DEFAULT_TENANT_ID.equals(tenantId);
+
+        // 仅当是 000000 平台租户的 superadmin 时，才加载包含平台底层的全量菜单
+        if (isPlatformTenant && LoginHelper.isSuperAdmin(userId)) {
             menus = baseMapper.selectMenuTreeAll();
         } else {
             LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
+            wrapper.in(SysMenu::getMenuType, SystemConstants.TYPE_DIR, SystemConstants.TYPE_MENU)
+                   .eq(SysMenu::getStatus, SystemConstants.NORMAL);
+
+            // 非平台租户绝对隔离强行切除平台独占菜单 (租户管理、租户套餐、客户端管理、代码生成、系统监控、系统工具)
+            if (!isPlatformTenant) {
+                wrapper.notIn(SysMenu::getMenuId, 2L, 3L, 6L)
+                       .notIn(SysMenu::getMenuName, "租户管理", "租户套餐管理", "系统监控", "系统工具", "代码生成", "客户端管理")
+                       .notLike(SysMenu::getPerms, "system:tenant")
+                       .notLike(SysMenu::getPerms, "system:tenantPackage")
+                       .notLike(SysMenu::getPerms, "system:client")
+                       .notLike(SysMenu::getPerms, "tool:")
+                       .notLike(SysMenu::getPerms, "monitor:");
+
+                SysTenant tenant = tenantMapper.selectOne(new LambdaQueryWrapper<SysTenant>().eq(SysTenant::getTenantId, tenantId));
+                if (ObjectUtil.isNotNull(tenant) && ObjectUtil.isNotNull(tenant.getPackageId())) {
+                    SysTenantPackage tenantPackage = tenantPackageMapper.selectById(tenant.getPackageId());
+                    if (ObjectUtil.isNotNull(tenantPackage)) {
+                        List<Long> packageMenuIds = StringUtils.splitTo(tenantPackage.getMenuIds(), Convert::toLong);
+                        if (CollUtil.isNotEmpty(packageMenuIds)) {
+                            wrapper.in(SysMenu::getMenuId, packageMenuIds);
+                        }
+                    }
+                }
+            }
+
+            if (!(LoginHelper.isSuperAdmin(userId) || LoginHelper.isTenantAdmin())) {
+                wrapper.inSql(SysMenu::getMenuId, baseMapper.buildMenuByUserSql(userId));
+            }
+
             menus = baseMapper.selectList(
-                wrapper.in(SysMenu::getMenuType, SystemConstants.TYPE_DIR, SystemConstants.TYPE_MENU)
-                    .eq(SysMenu::getStatus, SystemConstants.NORMAL)
-                    .inSql(SysMenu::getMenuId, baseMapper.buildMenuByUserSql(userId))
-                    .orderByAsc(SysMenu::getParentId)
-                    .orderByAsc(SysMenu::getOrderNum));
+                wrapper.orderByAsc(SysMenu::getParentId)
+                       .orderByAsc(SysMenu::getOrderNum));
         }
         return getChildPerms(menus, Constants.TOP_PARENT_ID);
     }

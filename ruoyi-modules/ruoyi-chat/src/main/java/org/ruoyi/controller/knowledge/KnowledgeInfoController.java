@@ -5,7 +5,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.*;
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import org.ruoyi.common.satoken.utils.LoginHelper;
 import org.ruoyi.domain.bo.knowledge.KnowledgeInfoBo;
 import org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo;
@@ -40,7 +42,7 @@ public class KnowledgeInfoController extends BaseController {
     /**
      * 查询知识库列表
      */
-    @SaCheckPermission("system:info:list")
+    @SaCheckLogin
     @GetMapping("/list")
     public TableDataInfo<KnowledgeInfoVo> list(KnowledgeInfoBo bo, PageQuery pageQuery) {
         return knowledgeInfoService.queryPageList(bo, pageQuery);

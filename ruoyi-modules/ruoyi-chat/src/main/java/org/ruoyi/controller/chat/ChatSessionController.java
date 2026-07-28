@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.*;
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import org.ruoyi.common.satoken.utils.LoginHelper;
 import org.ruoyi.service.chat.IChatSessionService;
@@ -40,7 +41,7 @@ public class ChatSessionController extends BaseController {
     /**
      * 查询会话管理列表
      */
-    @SaCheckPermission("system:session:list")
+    @SaCheckLogin
     @GetMapping("/list")
     public TableDataInfo<ChatSessionVo> list(ChatSessionBo bo, PageQuery pageQuery) {
         if(!LoginHelper.isLogin()){

@@ -134,7 +134,7 @@ public class SysTenantServiceImpl implements ISysTenantService {
         bo.setId(add.getId());
 
         // 根据套餐创建角色
-        Long roleId = createTenantRole(tenantId, bo.getPackageId());
+        Long roleId = createTenantRole(tenantId, bo.getPackageId(), bo.getTenantCategory());
 
         // 创建部门: 公司名是部门名称
         SysDept dept = new SysDept();
@@ -242,7 +242,7 @@ public class SysTenantServiceImpl implements ISysTenantService {
      * @param packageId 租户套餐id
      * @return 角色id
      */
-    private Long createTenantRole(String tenantId, Long packageId) {
+    private Long createTenantRole(String tenantId, Long packageId, String tenantCategory) {
         // 获取租户套餐
         SysTenantPackage tenantPackage = tenantPackageMapper.selectById(packageId);
         if (ObjectUtil.isNull(tenantPackage)) {
@@ -251,27 +251,79 @@ public class SysTenantServiceImpl implements ISysTenantService {
         // 获取套餐菜单id
         List<Long> menuIds = StringUtils.splitTo(tenantPackage.getMenuIds(), Convert::toLong);
 
-        // 创建角色
+        boolean isInst = "INST".equalsIgnoreCase(tenantCategory);
+
+        // 创建最高管理者角色（集团租户为集团管理员，机构租户为机构管理员）
         SysRole role = new SysRole();
         role.setTenantId(tenantId);
-        role.setRoleName(TenantConstants.TENANT_ADMIN_ROLE_NAME);
+        role.setRoleName(isInst ? "机构管理员" : "集团管理员");
         role.setRoleKey(TenantConstants.TENANT_ADMIN_ROLE_KEY);
         role.setRoleSort(1);
+        role.setDataScope(isInst ? "4" : "1");
         role.setStatus(SystemConstants.NORMAL);
         roleMapper.insert(role);
         Long roleId = role.getRoleId();
 
-        // 创建角色菜单
-        List<SysRoleMenu> roleMenus = new ArrayList<>(menuIds.size());
+        // 自动构建剩余预设角色矩阵（集团级补3个: 机构管理员/部门主管/普通员工 凑齐4个；机构级补2个: 部门主管/普通员工 凑齐3个）
+        List<SysRole> presetRoles = new ArrayList<>();
+        if (!isInst) {
+            presetRoles.add(createPresetRole(tenantId, "机构管理员", "inst_admin", 2, "4"));
+            presetRoles.add(createPresetRole(tenantId, "部门主管", "dept_manager", 3, "3"));
+            presetRoles.add(createPresetRole(tenantId, "普通员工", "common_staff", 4, "5"));
+        } else {
+            presetRoles.add(createPresetRole(tenantId, "部门主管", "dept_manager", 2, "3"));
+            presetRoles.add(createPresetRole(tenantId, "普通员工", "common_staff", 3, "5"));
+        }
+
+        for (SysRole r : presetRoles) {
+            roleMapper.insert(r);
+        }
+
+        // 1. 为 admin 最高管理者角色绑定套餐全量菜单
+        List<SysRoleMenu> roleMenus = new ArrayList<>();
         menuIds.forEach(menuId -> {
             SysRoleMenu roleMenu = new SysRoleMenu();
             roleMenu.setRoleId(roleId);
             roleMenu.setMenuId(menuId);
             roleMenus.add(roleMenu);
         });
-        roleMenuMapper.insertBatch(roleMenus);
+
+        // 2. 为各预设角色 100% 镜像同步 000000 平台模板角色的精细化菜单与按钮权限
+        for (SysRole presetRole : presetRoles) {
+            SysRole tplRole = roleMapper.selectOne(new LambdaQueryWrapper<SysRole>()
+                .eq(SysRole::getTenantId, TenantConstants.DEFAULT_TENANT_ID)
+                .eq(SysRole::getRoleKey, presetRole.getRoleKey()));
+            if (ObjectUtil.isNotNull(tplRole)) {
+                List<SysRoleMenu> tplMenus = roleMenuMapper.selectList(new LambdaQueryWrapper<SysRoleMenu>()
+                    .eq(SysRoleMenu::getRoleId, tplRole.getRoleId()));
+                for (SysRoleMenu tplMenu : tplMenus) {
+                    if (menuIds.contains(tplMenu.getMenuId())) {
+                        SysRoleMenu rm = new SysRoleMenu();
+                        rm.setRoleId(presetRole.getRoleId());
+                        rm.setMenuId(tplMenu.getMenuId());
+                        roleMenus.add(rm);
+                    }
+                }
+            }
+        }
+        if (CollUtil.isNotEmpty(roleMenus)) {
+            roleMenuMapper.insertBatch(roleMenus);
+        }
 
         return roleId;
+    }
+
+    private SysRole createPresetRole(String tenantId, String roleName, String roleKey, Integer sort, String dataScope) {
+        SysRole r = new SysRole();
+        r.setTenantId(tenantId);
+        r.setRoleName(roleName);
+        r.setRoleKey(roleKey);
+        r.setRoleSort(sort);
+        r.setDataScope(dataScope);
+        r.setMenuCheckStrictly(true);
+        r.setDeptCheckStrictly(true);
+        r.setStatus(SystemConstants.NORMAL);
+        return r;
     }
 
     /**

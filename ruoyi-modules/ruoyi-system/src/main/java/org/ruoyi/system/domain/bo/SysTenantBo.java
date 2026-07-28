@@ -53,6 +53,11 @@ public class SysTenantBo extends BaseEntity {
     private String companyName;
 
     /**
+     * 企业架构类型 (GROUP:集团级, INST:单体机构)
+     */
+    private String tenantCategory;
+
+    /**
      * 用户名（创建系统用户）
      */
     @NotBlank(message = "用户名不能为空", groups = { AddGroup.class })
@@ -99,6 +104,8 @@ public class SysTenantBo extends BaseEntity {
     /**
      * 过期时间
      */
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date expireTime;
 
     /**

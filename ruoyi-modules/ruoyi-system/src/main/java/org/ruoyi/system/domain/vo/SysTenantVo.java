@@ -96,6 +96,7 @@ public class SysTenantVo implements Serializable {
      * 过期时间
      */
     @ExcelProperty(value = "过期时间")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date expireTime;
 
     /**
