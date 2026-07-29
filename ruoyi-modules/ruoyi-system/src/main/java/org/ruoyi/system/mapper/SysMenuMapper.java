@@ -138,9 +138,6 @@ public interface SysMenuMapper extends BaseMapperPlus<SysMenu, SysMenuVo> {
             .inSql(SysMenu::getMenuId, buildMenuByRoleSql(roleId))
             .orderByAsc(SysMenu::getParentId)
             .orderByAsc(SysMenu::getOrderNum);
-        if (menuCheckStrictly) {
-            wrapper.notInSql(SysMenu::getMenuId, this.buildParentMenuByRoleSql(roleId));
-        }
         return this.selectObjs(wrapper);
     }
 

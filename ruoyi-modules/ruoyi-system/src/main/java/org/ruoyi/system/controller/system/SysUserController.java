@@ -121,6 +121,20 @@ public class SysUserController extends BaseController {
         userInfoVo.setUser(user);
         userInfoVo.setPermissions(loginUser.getMenuPermission());
         userInfoVo.setRoles(loginUser.getRolePermission());
+
+        // 填充当前登录租户的公司名称，用于前端左上角标题动态显示
+        String currentTenantId = TenantHelper.getTenantId();
+        if (StringUtils.isNotBlank(currentTenantId)) {
+            try {
+                SysTenantVo tenant = TenantHelper.ignore(() -> tenantService.queryByTenantId(currentTenantId));
+                if (ObjectUtil.isNotNull(tenant) && StringUtils.isNotBlank(tenant.getCompanyName())) {
+                    userInfoVo.setCompanyName(tenant.getCompanyName());
+                }
+            } catch (Exception ignored) {
+                // 查询失败不影响登录
+            }
+        }
+
         return R.ok(userInfoVo);
     }
 

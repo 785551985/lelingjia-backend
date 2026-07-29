@@ -74,6 +74,14 @@ public interface ISysMenuService {
     List<Long> selectMenuListByPackageId(Long packageId);
 
     /**
+     * 根据菜单ID列表直接查询菜单信息（不走租户过滤，用于角色编辑弹窗展示真实已有权限）
+     *
+     * @param menuIds 菜单ID列表
+     * @return 菜单列表
+     */
+    List<SysMenuVo> selectMenuListByIds(List<Long> menuIds);
+
+    /**
      * 构建前端路由所需要的菜单
      *
      * @param menus 菜单列表

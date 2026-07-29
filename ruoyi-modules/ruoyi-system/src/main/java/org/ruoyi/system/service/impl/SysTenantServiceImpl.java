@@ -427,12 +427,21 @@ public class SysTenantServiceImpl implements ISysTenantService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean syncTenantPackage(String tenantId, Long packageId) {
         SysTenantPackage tenantPackage = tenantPackageMapper.selectById(packageId);
+        if (ObjectUtil.isNull(tenantPackage) || StringUtils.isBlank(tenantPackage.getMenuIds())) {
+            return true;
+        }
         List<SysRole> roles = roleMapper.selectList(
             new LambdaQueryWrapper<SysRole>().eq(SysRole::getTenantId, tenantId));
-        List<Long> roleIds = new ArrayList<>(roles.size() - 1);
         List<Long> menuIds = StringUtils.splitTo(tenantPackage.getMenuIds(), Convert::toLong);
+
         roles.forEach(item -> {
-            if (TenantConstants.TENANT_ADMIN_ROLE_KEY.equals(item.getRoleKey())) {
+            // 通用规则：租户排在第一位的超级管理员角色，或 Key/Name 匹配管理员特性的角色
+            boolean isAdminRole = (item.getRoleSort() != null && item.getRoleSort() == 1)
+                || TenantConstants.TENANT_ADMIN_ROLE_KEY.equals(item.getRoleKey())
+                || "tenant_admin".equals(item.getRoleKey())
+                || (item.getRoleName() != null && item.getRoleName().contains("管理员"));
+
+            if (isAdminRole) {
                 List<SysRoleMenu> roleMenus = new ArrayList<>(menuIds.size());
                 menuIds.forEach(menuId -> {
                     SysRoleMenu roleMenu = new SysRoleMenu();
@@ -442,14 +451,8 @@ public class SysTenantServiceImpl implements ISysTenantService {
                 });
                 roleMenuMapper.delete(new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, item.getRoleId()));
                 roleMenuMapper.insertBatch(roleMenus);
-            } else {
-                roleIds.add(item.getRoleId());
             }
         });
-        if (!roleIds.isEmpty()) {
-            roleMenuMapper.delete(
-                new LambdaQueryWrapper<SysRoleMenu>().in(SysRoleMenu::getRoleId, roleIds).notIn(!menuIds.isEmpty(), SysRoleMenu::getMenuId, menuIds));
-        }
         return true;
     }
 

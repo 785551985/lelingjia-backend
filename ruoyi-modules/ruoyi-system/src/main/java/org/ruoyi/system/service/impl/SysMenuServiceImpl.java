@@ -72,17 +72,13 @@ public class SysMenuServiceImpl implements ISysMenuService {
         List<SysMenuVo> menuList;
         LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
         
-        // 租户视角隔离：非 000000 平台租户，强制过滤只能查看当前租户套餐内的合法菜单，且彻底切除平台独占菜单
+        // 租户视角隔离：按当前租户套餐所勾选的菜单进行授权（仅绝对隔离【租户管理】与【租户套餐管理】）
         String tenantId = TenantHelper.getTenantId();
         if (StringUtils.isNotBlank(tenantId) && !TenantConstants.DEFAULT_TENANT_ID.equals(tenantId)) {
-            // 物理防线：非平台租户绝对隔离【租户管理】、【租户套餐】、【系统监控】、【系统工具】、【代码生成】等平台专属菜单目录
-            wrapper.notIn(SysMenu::getMenuId, 2L, 3L, 6L)
-                   .notIn(SysMenu::getMenuName, "租户管理", "租户套餐管理", "系统监控", "系统工具", "代码生成", "客户端管理")
+            wrapper.notIn(SysMenu::getMenuId, 6L)
+                   .notIn(SysMenu::getMenuName, "租户管理", "租户套餐管理")
                    .notLike(SysMenu::getPerms, "system:tenant")
-                   .notLike(SysMenu::getPerms, "system:tenantPackage")
-                   .notLike(SysMenu::getPerms, "system:client")
-                   .notLike(SysMenu::getPerms, "tool:")
-                   .notLike(SysMenu::getPerms, "monitor:");
+                   .notLike(SysMenu::getPerms, "system:tenantPackage");
 
             SysTenant tenant = tenantMapper.selectOne(new LambdaQueryWrapper<SysTenant>().eq(SysTenant::getTenantId, tenantId));
             if (ObjectUtil.isNotNull(tenant) && ObjectUtil.isNotNull(tenant.getPackageId())) {
@@ -156,15 +152,11 @@ public class SysMenuServiceImpl implements ISysMenuService {
             wrapper.in(SysMenu::getMenuType, SystemConstants.TYPE_DIR, SystemConstants.TYPE_MENU)
                    .eq(SysMenu::getStatus, SystemConstants.NORMAL);
 
-            // 非平台租户绝对隔离强行切除平台独占菜单 (租户管理、租户套餐、客户端管理、代码生成、系统监控、系统工具)
             if (!isPlatformTenant) {
-                wrapper.notIn(SysMenu::getMenuId, 2L, 3L, 6L)
-                       .notIn(SysMenu::getMenuName, "租户管理", "租户套餐管理", "系统监控", "系统工具", "代码生成", "客户端管理")
-                       .notLike(SysMenu::getPerms, "system:tenant")
-                       .notLike(SysMenu::getPerms, "system:tenantPackage")
-                       .notLike(SysMenu::getPerms, "system:client")
-                       .notLike(SysMenu::getPerms, "tool:")
-                       .notLike(SysMenu::getPerms, "monitor:");
+                wrapper.notIn(SysMenu::getMenuId, 6L)
+                       .notIn(SysMenu::getMenuName, "租户管理", "租户套餐管理")
+                       .and(w -> w.isNull(SysMenu::getPerms).or().notLike(SysMenu::getPerms, "system:tenant"))
+                       .and(w -> w.isNull(SysMenu::getPerms).or().notLike(SysMenu::getPerms, "system:tenantPackage"));
 
                 SysTenant tenant = tenantMapper.selectOne(new LambdaQueryWrapper<SysTenant>().eq(SysTenant::getTenantId, tenantId));
                 if (ObjectUtil.isNotNull(tenant) && ObjectUtil.isNotNull(tenant.getPackageId())) {
@@ -178,7 +170,8 @@ public class SysMenuServiceImpl implements ISysMenuService {
                 }
             }
 
-            if (!(LoginHelper.isSuperAdmin(userId) || LoginHelper.isTenantAdmin())) {
+            // 3. 用户角色授权约束（RBAC 统一法则）：非 000000 平台 superadmin 的所有用户，菜单均受限于其角色实际分配的菜单
+            if (!LoginHelper.isSuperAdmin(userId)) {
                 wrapper.inSql(SysMenu::getMenuId, baseMapper.buildMenuByUserSql(userId));
             }
 
@@ -210,24 +203,24 @@ public class SysMenuServiceImpl implements ISysMenuService {
     @Override
     public List<Long> selectMenuListByPackageId(Long packageId) {
         SysTenantPackage tenantPackage = tenantPackageMapper.selectById(packageId);
-        List<Long> menuIds = StringUtils.splitTo(tenantPackage.getMenuIds(), Convert::toLong);
-        if (CollUtil.isEmpty(menuIds)) {
+        if (ObjectUtil.isNull(tenantPackage) || StringUtils.isBlank(tenantPackage.getMenuIds())) {
             return List.of();
         }
-        List<Long> parentIds = null;
-        if (tenantPackage.getMenuCheckStrictly()) {
-            parentIds = baseMapper.selectObjs(new LambdaQueryWrapper<SysMenu>()
-                .select(SysMenu::getParentId)
-                .in(SysMenu::getMenuId, menuIds), x -> {
-                return Convert.toLong(x);
-            });
+        return StringUtils.splitTo(tenantPackage.getMenuIds(), Convert::toLong);
+    }
+
+    /**
+     * 根据菜单ID列表直接查询菜单信息（不走租户过滤，用于角色编辑弹窗展示真实已有权限）
+     */
+    @Override
+    public List<SysMenuVo> selectMenuListByIds(List<Long> menuIds) {
+        if (CollUtil.isEmpty(menuIds)) {
+            return new ArrayList<>();
         }
-        return baseMapper.selectObjs(new LambdaQueryWrapper<SysMenu>()
-            .select(SysMenu::getMenuId)
+        return baseMapper.selectVoList(new LambdaQueryWrapper<SysMenu>()
             .in(SysMenu::getMenuId, menuIds)
-            .notIn(CollUtil.isNotEmpty(parentIds), SysMenu::getMenuId, parentIds), x -> {
-            return Convert.toLong(x);
-        });
+            .orderByAsc(SysMenu::getParentId)
+            .orderByAsc(SysMenu::getOrderNum));
     }
 
     /**

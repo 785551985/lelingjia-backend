@@ -22,7 +22,6 @@ import org.ruoyi.system.service.ISysMenuService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -94,9 +93,24 @@ public class SysMenuController extends BaseController {
      */
     @GetMapping(value = "/roleMenuTreeselect/{roleId}")
     public R<MenuTreeSelectVo> roleMenuTreeselect(@PathVariable("roleId") Long roleId) {
-        List<SysMenuVo> menus = menuService.selectMenuList(LoginHelper.getUserId());
+        // 获取角色实际拥有的全量 menuId 列表（checkedKeys）
+        List<Long> roleMenuIds = menuService.selectMenuListByRoleId(roleId);
+        // 菜单树基础：使用当前用户能看到的全量菜单（与套餐弹窗逻辑一致，保证计数不偏差）
+        // 对于租户侧管理员，selectMenuList 已经受套餐约束，只能看到套餐内的菜单
+        List<SysMenuVo> menus = menuService.selectMenuListByIds(roleMenuIds);
+        // 追加所有父级目录节点（确保树结构完整可渲染，与套餐编辑弹窗行为一致）
+        List<Long> parentIds = menus.stream()
+            .map(SysMenuVo::getParentId)
+            .filter(pid -> pid != null && pid != 0L && !roleMenuIds.contains(pid))
+            .distinct()
+            .collect(java.util.stream.Collectors.toList());
+        if (!parentIds.isEmpty()) {
+            List<SysMenuVo> parentMenus = menuService.selectMenuListByIds(parentIds);
+            menus = new java.util.ArrayList<>(menus);
+            menus.addAll(parentMenus);
+        }
         MenuTreeSelectVo selectVo = new MenuTreeSelectVo(
-            menuService.selectMenuListByRoleId(roleId),
+            roleMenuIds,
             menuService.buildMenuTreeSelect(menus));
         return R.ok(selectVo);
     }
@@ -112,8 +126,8 @@ public class SysMenuController extends BaseController {
     public R<MenuTreeSelectVo> tenantPackageMenuTreeselect(@PathVariable("packageId") Long packageId) {
         List<SysMenuVo> menus = menuService.selectMenuList(LoginHelper.getUserId());
         List<Tree<Long>> list = menuService.buildMenuTreeSelect(menus);
-        // 删除租户管理菜单
-        list.removeIf(menu -> menu.getId() == 6L);
+        // 过滤切除仅限平台超管使用的【租户管理】与【租户套餐管理】
+        list.removeIf(menu -> menu.getId() == 6L || "租户管理".equals(menu.getName()) || "租户套餐管理".equals(menu.getName()));
         List<Long> ids = new ArrayList<>();
         if (packageId > 0L) {
             ids = menuService.selectMenuListByPackageId(packageId);

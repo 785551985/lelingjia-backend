@@ -27,4 +27,9 @@ public class UserInfoVo {
      */
     private Set<String> roles;
 
+    /**
+     * 当前登录租户的公司名称（用于前端左上角标题动态显示）
+     */
+    private String companyName;
+
 }
