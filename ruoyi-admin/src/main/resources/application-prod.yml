@@ -56,12 +56,11 @@ spring:
         # 主库数据源
         master:
           type: ${spring.datasource.type}
-          driverClassName: com.mysql.cj.jdbc.Driver
-          # jdbc 所有参数配置参考 https://lionli.blog.csdn.net/article/details/122018562
-          # rewriteBatchedStatements=true 批处理优化 大幅提升批量插入更新删除性能(对数据库有性能损耗 使用批量操作应考虑性能问题)
-          url: jdbc:mysql://127.0.0.1:3306/ruoyi-ai?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
-          username: root
-          password: root
+          driverClassName: org.postgresql.Driver
+          # 改为您的生产 PostgreSQL 数据库地址与密码
+          url: jdbc:postgresql://127.0.0.1:5432/ruoyi_ai?currentSchema=public&stringtype=unspecified
+          username: postgres
+          password: postgres
 #        agent:
 #          url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
 #          # url: jdbc:mysql://localhost:3306/agent_db
@@ -82,7 +81,7 @@ spring:
         idleTimeout: 600000
         # 此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认30分钟
         maxLifetime: 1800000
-        # 多久检查一次连接的活性
+        # 多久检查一次连接 of 活性
         keepaliveTime: 30000
 
 
@@ -90,7 +89,7 @@ spring:
 --- # 上传文件地址
 sys:
   upload:
-    path: D:\\DownLoad
+    path: /home/ruoyi/upload
 
 --- # redis 单机配置(单机与集群只能开启一个另一个需要注释掉)
 spring.data:
