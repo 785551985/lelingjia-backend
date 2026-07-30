@@ -30,7 +30,7 @@ public class QueryAllTablesTool implements BuiltinToolProvider {
      *
      * @return 包含所有表信息的结果
      */
-    @Tool("Query all tables in the database and return table names and basic information")
+    @Tool("查询当前数据库中的所有数据表名称与基本结构概览")
     public String queryAllTables() {
         try {
             // 1. 从管理器获取所有允许的表结构信息（内部已包含初始化/缓存逻辑）
@@ -76,6 +76,6 @@ public class QueryAllTablesTool implements BuiltinToolProvider {
 
     @Override
     public String getDescription() {
-        return "Query all tables in the database and return table names and basic information";
+        return "查询当前数据库中的所有数据表名称与基本结构概览";
     }
 }

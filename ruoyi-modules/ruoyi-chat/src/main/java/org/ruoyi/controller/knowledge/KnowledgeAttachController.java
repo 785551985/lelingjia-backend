@@ -138,4 +138,17 @@ public class KnowledgeAttachController extends BaseController {
     public R<KnowledgeReparseVo> reparseKnowledge(@PathVariable Long knowledgeId) {
         return R.ok(knowledgeAttachService.reparseKnowledge(knowledgeId));
     }
+
+    /**
+     * 初始化预设模板文档（创建内置范本并触发向量化）
+     */
+    @SaCheckPermission("system:attach:add")
+    @Log(title = "知识库附件", businessType = BusinessType.INSERT)
+    @PostMapping("/init-template")
+    public R<Void> initTemplate(@RequestParam Long knowledgeId,
+                                @RequestParam String templateKey,
+                                @RequestParam String docName) {
+        knowledgeAttachService.initTemplate(knowledgeId, templateKey, docName);
+        return R.ok();
+    }
 }

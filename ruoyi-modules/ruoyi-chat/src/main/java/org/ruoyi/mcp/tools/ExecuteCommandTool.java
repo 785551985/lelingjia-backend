@@ -39,10 +39,10 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class ExecuteCommandTool implements BuiltinToolProvider {
 
-    public static final String DESCRIPTION = "Executes a shell command in the workspace directory. " +
-        "Command must be in the allowed whitelist (npm/pnpm/yarn/git/mvn/gradle/java/javac/" +
-        "python/pip/node/tsc/eslint/prettier/cat/ls/dir/echo). " +
-        "Returns combined stdout+stderr tail (8KB). 30s timeout.";
+    public static final String DESCRIPTION = "在后台安全执行系统命令行工具（如 Git 操作、Python 自动化脚本等）。" +
+        "命令必须在白名单内（npm/pnpm/yarn/git/mvn/gradle/java/javac/" +
+        "python/pip/node/tsc/eslint/prettier/cat/ls/dir/echo）。" +
+        "返回合并后的标准输出与错误输出尾部（最大 8KB），30秒超时。";
 
     /** 允许的命令白名单（首段） */
     private static final Set<String> ALLOWED_COMMANDS = Set.of(

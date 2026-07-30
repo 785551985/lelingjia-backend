@@ -117,11 +117,11 @@ public class BuiltinToolRegistry {
      * @return 内置工具定义集合
      */
     public Collection<BuiltinToolDefinition> getAllBuiltinTools() {
-        return displayNames.entrySet().stream()
-            .map(entry -> new BuiltinToolDefinition(
-                entry.getKey(),
-                entry.getValue(),
-                "" // Description can be added later if needed
+        return toolProviders.stream()
+            .map(provider -> new BuiltinToolDefinition(
+                provider.getToolName(),
+                provider.getDisplayName(),
+                provider.getDescription()
             ))
             .toList();
     }

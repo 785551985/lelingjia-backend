@@ -69,8 +69,9 @@ public class SystemToolInitializer implements ApplicationRunner {
         McpTool existing = mcpToolMapper.selectOne(wrapper);
 
         if (existing != null) {
-            // 已存在，更新描述信息（保留状态不变）
-            if (!tool.description().equals(existing.getDescription())) {
+            // 已存在，仅在新描述不为空且有变化时更新
+            if (org.springframework.util.StringUtils.hasText(tool.description()) 
+                && !tool.description().equals(existing.getDescription())) {
                 existing.setDescription(tool.description());
                 mcpToolMapper.updateById(existing);
                 log.debug("更新内置工具描述: {}", tool.name());

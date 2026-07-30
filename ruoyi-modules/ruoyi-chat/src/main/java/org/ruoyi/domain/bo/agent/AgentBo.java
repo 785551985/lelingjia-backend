@@ -88,6 +88,31 @@ public class AgentBo extends BaseEntity {
     private String status;
 
     /**
+     * 是否公开：1 对内公开 2 对外公开 0 仅自己可见
+     */
+    private Integer isPublic;
+
+    /**
+     * 作用域级别：1 集团级 2 机构级 3 部门级 4 个人级
+     */
+    private Integer scopeLevel;
+
+    /**
+     * 可见范围：0 全员公开 1 指定部门/角色可见
+     */
+    private Integer visibleScope;
+
+    /**
+     * 允许访问的部门ID列表（逗号分隔）
+     */
+    private String deptIds;
+
+    /**
+     * 允许访问的角色ID列表（逗号分隔）
+     */
+    private String roleIds;
+
+    /**
      * 备注
      */
     private String remark;

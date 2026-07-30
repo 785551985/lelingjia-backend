@@ -186,7 +186,27 @@ public class KnowledgeInfoServiceImpl implements IKnowledgeInfoService {
         int overlap = entity.getOverlapChar() == null
             ? DocumentSplitConfig.DEFAULT_OVERLAP : entity.getOverlapChar().intValue();
         new DocumentSplitConfig(entity.getSeparator(), blockSize, overlap, "");
-        //TODO 做一些数据校验,如唯一约束
+
+        // 智能同主体防重校验：同一作用域级别与主体范围内，禁止创建同名知识库
+        if (StringUtils.isNotBlank(entity.getName())) {
+            LambdaQueryWrapper<KnowledgeInfo> checkLqw = Wrappers.lambdaQuery(KnowledgeInfo.class)
+                .eq(KnowledgeInfo::getName, entity.getName().trim())
+                .eq(entity.getScopeLevel() != null, KnowledgeInfo::getScopeLevel, entity.getScopeLevel())
+                .ne(entity.getId() != null, KnowledgeInfo::getId, entity.getId());
+
+            // 个人私有级 (scopeLevel = 4)：限定同一创建者个人不可重名
+            if (Integer.valueOf(4).equals(entity.getScopeLevel()) && entity.getUserId() != null) {
+                checkLqw.eq(KnowledgeInfo::getUserId, entity.getUserId());
+            } 
+            // 部门/机构级 (scopeLevel = 2 或 3)：限定同一部门/机构主体下不可重名
+            else if ((Integer.valueOf(2).equals(entity.getScopeLevel()) || Integer.valueOf(3).equals(entity.getScopeLevel())) && StringUtils.isNotBlank(entity.getDeptScope())) {
+                checkLqw.eq(KnowledgeInfo::getDeptScope, entity.getDeptScope());
+            }
+
+            if (baseMapper.exists(checkLqw)) {
+                throw new org.ruoyi.common.core.exception.ServiceException("当前主体/部门范围内已存在同名知识库【" + entity.getName() + "】，请使用区分度更高的名称！");
+            }
+        }
     }
 
     /**

@@ -300,33 +300,47 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
             DocumentSplitConfig splitConfig = new DocumentSplitConfig(
                 knowledgeInfoVo.getSeparator(), blockSize, overlap, attach.getType());
 
-            // 获取文件信息并下载
-            List<OssDTO> ossDTOs = ossService.selectByIds(String.valueOf(attach.getOssId()));
-            if (ossDTOs == null || ossDTOs.isEmpty()) {
-                throw new RuntimeException("未找到对应的 OSS 文件信息");
-            }
-            OssDTO ossDTO = ossDTOs.get(0);
-            String content;
-            ResourceLoader resourceLoader = resourceLoaderFactory.getLoaderByFileType(attach.getType());
-            Path tempPath = null;
-            try {
+            List<String> chunkList;
+            if (attach.getOssId() == null) {
+                // 特殊处理：系统预设示范范本文档（无物理 OSS 文件）
+                log.info("检测到预设示范范本文档 (ossId为null)，从存量分块中读取内容进行重新解析与向量化... docId: {}", docId);
+                List<KnowledgeFragment> frags = knowledgeFragmentMapper.selectList(
+                    Wrappers.<KnowledgeFragment>lambdaQuery().eq(KnowledgeFragment::getDocId, docId)
+                );
+                if (CollUtil.isNotEmpty(frags)) {
+                    chunkList = frags.stream().map(KnowledgeFragment::getContent).collect(Collectors.toList());
+                } else {
+                    chunkList = List.of("# " + attach.getName() + "\n\n内置标准范本文档，请根据实际业务需要编辑修改。");
+                }
+            } else {
+                // 获取文件信息并下载
+                List<OssDTO> ossDTOs = ossService.selectByIds(String.valueOf(attach.getOssId()));
+                if (ossDTOs == null || ossDTOs.isEmpty()) {
+                    throw new RuntimeException("未找到对应的 OSS 文件信息");
+                }
+                OssDTO ossDTO = ossDTOs.get(0);
+                String content;
+                ResourceLoader resourceLoader = resourceLoaderFactory.getLoaderByFileType(attach.getType());
+                Path tempPath = null;
                 try {
-                    tempPath = OssFactory.instance().fileDownload(ossDTO.getFileName());
-                    try (InputStream inputStream = Files.newInputStream(tempPath)) {
-                        content = resourceLoader.getContent(inputStream);
+                    try {
+                        tempPath = OssFactory.instance().fileDownload(ossDTO.getFileName());
+                        try (InputStream inputStream = Files.newInputStream(tempPath)) {
+                            content = resourceLoader.getContent(inputStream);
+                        }
+                    } catch (Exception downloadEx) {
+                        log.warn("通过 OssFactory 认证下载失败，尝试降级通过 URL 直接读取: {}", downloadEx.getMessage());
+                        try (InputStream inputStream = new URL(ossDTO.getUrl()).openStream()) {
+                            content = resourceLoader.getContent(inputStream);
+                        }
                     }
-                } catch (Exception downloadEx) {
-                    log.warn("通过 OssFactory 认证下载失败，尝试降级通过 URL 直接读取: {}", downloadEx.getMessage());
-                    try (InputStream inputStream = new URL(ossDTO.getUrl()).openStream()) {
-                        content = resourceLoader.getContent(inputStream);
+                } finally {
+                    if (tempPath != null) {
+                        try { Files.deleteIfExists(tempPath); } catch (Exception ignored) {}
                     }
                 }
-            } finally {
-                if (tempPath != null) {
-                    try { Files.deleteIfExists(tempPath); } catch (Exception ignored) {}
-                }
+                chunkList = resourceLoader.getChunkList(content, splitConfig);
             }
-            List<String> chunkList = resourceLoader.getChunkList(content, splitConfig);
 
             if (CollUtil.isEmpty(chunkList)) {
                 throw new RuntimeException("文档分片结果为空，请检查文档内容或分片器是否支持该文件类型");
@@ -422,4 +436,53 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
         }
         return new KnowledgeReparseVo(submitted, skipped, attachments.size());
     }
+
+    // ==================== 内置模板内容 ====================
+    private static final Map<String, String> TEMPLATE_CONTENT_MAP;
+    static {
+        Map<String, String> m = new java.util.LinkedHashMap<>();
+        m.put("common", "# 企业公共基础知识库 - 示范指南规范手册\n\n## 一、企业简介\n示例健康科技集团成立于 2018 年，致力于打造全国领先的智能化、标准化综合健康管理与企业数字化服务平台。集团总部位于深圳，在全国拥有超过 20 家分支机构与区域分公司。\n\n## 二、企业使命与核心价值观\n- 使命：让每一位客户享受到专业、温暖、智能的标准化健康与企服体验。\n- 价值观：客户第一、专业至上、诚信担当、创新共赢。\n");
+        m.put("brand", "# 企业品牌与 VI 视觉规范标准手册\n\n## 一、品牌定位\n科技赋能、专业严谨、人文关怀、值得信赖。\n\n## 二、品牌色彩规范\n- 品牌科技蓝：#1890FF\n- 品牌健康绿：#52C41A\n- 深紫暗调：#2F54EB\n");
+        m.put("expert", "# 外部专家顾问与智库智囊名录手册\n\n## 一、医疗健康专家组\n- 张建国 教授 / 主任医师：集团首席医疗健康顾问\n- 李美玲 博士 / 心理咨询专家：集团心理健康智库专家\n\n## 二、企服合规专家组\n- 陈振华 律师：集团法律合规顾问\n");
+        m.put("faq", "# 对外客服常见问题解答 (FAQ) 标准库\n\n## 常见问题集锦\nQ1: 忘记账号登录密码该如何重置？\nA: 点击登录页“忘记密码”，输入手机验证码后重置。\n\nQ2: 客服服务时间？\nA: 工作日 09:00 - 18:00，热线：400-888-9999。\n");
+        m.put("training", "# 分支机构新人入职与培训手册\n\n## 一、入职第一周流程\n- Day 1: 办理入职手续与开通账号\n- Day 2: 规章制度学习\n- Day 3-4: 业务 SOP 培训\n");
+        m.put("sop", "# 业务 SOP 与标准作业流程手册\n\n## 一、接待与服务标准流程\n1. 接待迎接 -> 2. 需求倾听 -> 3. 方案匹配 -> 4. 跟进反馈\n");
+        m.put("product", "# 产品与服务项目手册与报价清单\n\n## 核心套餐\n1. 基础健康管理套餐：¥1,980 / 人/年\n2. 企业级综合服务方案：¥15,000起 / 企业/年\n");
+        m.put("rule", "# 分支机构通用管理制度与行为规范\n\n## 考勤管理\n- 正常工作时间：周一至周五 09:00 - 18:00。\n");
+        m.put("contract", "# 资质合规与标准合同文本规范\n\n## 核心条款\n包含知识产权保护、商业保密及争议解决管辖条款。\n");
+        m.put("case", "# 优秀案例与最佳实践复盘手册\n\n## 标杆案例\n某知名科技公司全员健康管理项目，客户满意度提升至 96%。\n");
+        m.put("talent", "# 内部人才档案与专家骨干名录\n\n## 骨干人才名录\n- 王明 (高级健康管理师)\n- 陈丽 (客服与交付总监)\n");
+        TEMPLATE_CONTENT_MAP = Collections.unmodifiableMap(m);
+    }
+
+    @Override
+    public void initTemplate(Long knowledgeId, String templateKey, String docName) {
+        String mdContent = TEMPLATE_CONTENT_MAP.getOrDefault(templateKey,
+            "# " + docName + "\n\n本文档为预设示范范本，请根据实际业务需要编辑修改。\n");
+
+        // 1. 创建附件记录（ossId=null 表示内置文本，无物理文件）
+        KnowledgeAttach attach = new KnowledgeAttach();
+        attach.setKnowledgeId(knowledgeId);
+        attach.setDocId(RandomUtil.randomString(10));
+        attach.setName(docName);
+        attach.setType("md");
+        attach.setRemark("预设内置示范文档");
+        attach.setEffectiveStatus("latest");
+        attach.setStatus(KnowledgeAttachStatus.WAITING.getCode());
+        baseMapper.insert(attach);
+
+        // 2. 预写入 fragment，供 parse() 的 ossId=null 分支读取
+        KnowledgeFragment frag = new KnowledgeFragment();
+        frag.setKnowledgeId(knowledgeId);
+        frag.setDocId(attach.getDocId());
+        frag.setFid(RandomUtil.randomString(10));
+        frag.setIdx(0);
+        frag.setContent(mdContent);
+        frag.setCreateTime(new Date());
+        knowledgeFragmentMapper.insert(frag);
+
+        // 3. 触发异步向量化（parse 会读取 fragment 并向量化）
+        SpringUtils.getBean(IKnowledgeAttachService.class).parse(attach.getId());
+    }
 }
+

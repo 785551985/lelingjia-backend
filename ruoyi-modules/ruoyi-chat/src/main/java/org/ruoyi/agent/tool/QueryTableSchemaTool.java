@@ -24,7 +24,7 @@ public class QueryTableSchemaTool implements BuiltinToolProvider {
         return SpringUtils.getBean(DataSource.class);
     }
 
-    @Tool("Query the CREATE TABLE statement (DDL) for a specific table by table name")
+    @Tool("查询指定数据库表的详细字段结构、数据类型、主键与索引信息")
     public String queryTableSchema(String tableName) {
         // 2. 手动推入数据源上下文
         DynamicDataSourceContextHolder.push("agent");
@@ -81,6 +81,6 @@ public class QueryTableSchemaTool implements BuiltinToolProvider {
 
     @Override
     public String getDescription() {
-        return "Query the CREATE TABLE statement (DDL) for a specific table by table name";
+        return "查询指定数据库表的详细字段结构、数据类型、主键与索引信息";
     }
 }

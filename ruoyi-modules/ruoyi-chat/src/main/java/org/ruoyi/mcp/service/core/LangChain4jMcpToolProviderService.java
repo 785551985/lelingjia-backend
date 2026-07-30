@@ -262,9 +262,9 @@ public class LangChain4jMcpToolProviderService {
             }
             return false;
         } catch (Exception e) {
-            log.error("Health check failed for tool {}: {}", tool.getName(), e.getMessage());
+            log.error("Health check failed for tool {}: ", tool.getName(), e);
             handleToolFailure(toolId);
-            return false;
+            throw new RuntimeException(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(), e);
         }
     }
 
@@ -308,15 +308,7 @@ public class LangChain4jMcpToolProviderService {
             throw new IllegalArgumentException("Config JSON is required for LOCAL type tool");
         }
 
-        if (configJson.contains("\\") && !configJson.contains("\\\\")) {
-            configJson = configJson.replace("\\", "\\\\");
-        }
-        JsonNode configNode;
-        try {
-            configNode = objectMapper.readTree(configJson);
-        } catch (Exception e) {
-            configNode = objectMapper.readTree(configJson.replace("\\", "/"));
-        }
+        JsonNode configNode = objectMapper.readTree(configJson);
 
         // 解析命令
         String command = null;
@@ -344,10 +336,18 @@ public class LangChain4jMcpToolProviderService {
             throw new IllegalArgumentException("Command '" + command + "' is not available on this system. Please install the required package or use a different tool.");
         }
 
-        // 构建完整命令列表
+        // 构建完整命令列表（Windows 平台兼容 cmd.exe /c 命令行启动）
         List<String> fullCommand = new ArrayList<>();
-        fullCommand.add(command);
-        fullCommand.addAll(args);
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+        if (isWindows) {
+            fullCommand.add("cmd.exe");
+            fullCommand.add("/c");
+            fullCommand.add(command);
+            fullCommand.addAll(args);
+        } else {
+            fullCommand.add(command);
+            fullCommand.addAll(args);
+        }
 
         log.info("Creating STDIO MCP client for tool: {}, command: {}", tool.getName(), fullCommand);
 
@@ -367,21 +367,24 @@ public class LangChain4jMcpToolProviderService {
      * 检查命令是否在系统上可用
      */
     private boolean isCommandAvailable(String command) {
+        if (command == null || command.isBlank()) {
+            return false;
+        }
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+        if (isWindows) {
+            return true;
+        }
         try {
-            ProcessBuilder pb = new ProcessBuilder(command, "--version");
+            java.io.File file = new java.io.File(command);
+            if (file.exists()) {
+                return true;
+            }
+            ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(true);
             Process process = pb.start();
-            boolean finished = process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
-            if (!finished) {
-                process.destroyForcibly();
-                return false;
-            }
-            int exitCode = process.exitValue();
-            // 对于某些命令，--version 可能返回非零退出码，所以我们只检查进程是否能启动
-            // 如果进程能启动并退出（无论退出码是什么），我们认为命令可用
+            process.destroyForcibly();
             return true;
         } catch (Exception e) {
-            log.debug("Command '{}' is not available: {}", command, e.getMessage());
             return false;
         }
     }
@@ -394,16 +397,7 @@ public class LangChain4jMcpToolProviderService {
         if (configJson == null || configJson.isBlank()) {
             throw new IllegalArgumentException("Config JSON is required for REMOTE type tool");
         }
-
-        if (configJson.contains("\\") && !configJson.contains("\\\\")) {
-            configJson = configJson.replace("\\", "\\\\");
-        }
-        JsonNode configNode;
-        try {
-            configNode = objectMapper.readTree(configJson);
-        } catch (Exception e) {
-            configNode = objectMapper.readTree(configJson.replace("\\", "/"));
-        }
+        JsonNode configNode = objectMapper.readTree(configJson);
 
         if (!configNode.has("baseUrl")) {
             throw new IllegalArgumentException("baseUrl is required in config JSON for REMOTE type tool");
@@ -443,6 +437,19 @@ public class LangChain4jMcpToolProviderService {
                 String resolvedCommand = command + ".cmd";
                 log.debug("Windows detected, resolved command: {} -> {}", command, resolvedCommand);
                 return resolvedCommand;
+            }
+
+            if (!command.contains("/") && !command.contains("\\")) {
+                String appData = System.getenv("APPDATA");
+                if (appData != null) {
+                    java.io.File npmCmd = new java.io.File(appData + "\\npm\\" + (command.endsWith(".cmd") ? command : command + ".cmd"));
+                    if (npmCmd.exists()) {
+                        return npmCmd.getAbsolutePath();
+                    }
+                }
+                if (!command.endsWith(".cmd") && !command.endsWith(".bat") && !command.endsWith(".exe")) {
+                    return command + ".cmd";
+                }
             }
         }
 

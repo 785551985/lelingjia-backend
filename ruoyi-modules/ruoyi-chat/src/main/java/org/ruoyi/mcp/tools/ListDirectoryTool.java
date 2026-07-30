@@ -26,10 +26,7 @@ import java.util.stream.Stream;
 @Component
 public class ListDirectoryTool implements BuiltinToolProvider {
 
-    public static final String DESCRIPTION = "Lists files and directories in the specified path. " +
-        "Supports recursive listing and filtering. " +
-        "Shows file sizes, modification times, and types. " +
-        "Use absolute paths within the workspace directory.";
+    public static final String DESCRIPTION = "列出服务器或本地指定目录下的全部文件与子文件夹明细。";
 
     private final String rootDirectory;
     private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(getClass());

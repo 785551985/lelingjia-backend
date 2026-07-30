@@ -20,9 +20,7 @@ import java.nio.file.Paths;
 @Component
 public class ReadFileTool implements BuiltinToolProvider {
 
-    public static final String DESCRIPTION = "Reads the contents of a file. " +
-        "Use absolute paths within the workspace directory. " +
-        "Returns the complete file content as a string.";
+    public static final String DESCRIPTION = "读取并返回指定本地文本、代码、JSON 或日志文件的完整内容。";
 
     private final String rootDirectory;
     /** 读取内容截断上限，避免大文件撑爆 LLM 上下文（32KB） */

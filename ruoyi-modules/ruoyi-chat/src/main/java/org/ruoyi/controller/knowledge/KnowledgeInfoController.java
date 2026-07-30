@@ -72,15 +72,16 @@ public class KnowledgeInfoController extends BaseController {
     }
 
     /**
-     * 新增知识库
+     * 新增知识库（返回新建知识库的 ID）
      */
     @SaCheckPermission("system:info:add")
     @Log(title = "知识库", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping()
-    public R<Void> add(@Validated(AddGroup.class) @RequestBody KnowledgeInfoBo bo) {
-            bo.setUserId(LoginHelper.getUserId());
-        return toAjax(knowledgeInfoService.insertByBo(bo));
+    public R<Long> add(@Validated(AddGroup.class) @RequestBody KnowledgeInfoBo bo) {
+        bo.setUserId(LoginHelper.getUserId());
+        Boolean ok = knowledgeInfoService.insertByBo(bo);
+        return ok ? R.ok(bo.getId()) : R.fail("新增知识库失败");
     }
 
     /**

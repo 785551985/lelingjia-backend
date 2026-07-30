@@ -210,7 +210,11 @@ public class McpToolServiceImpl implements IMcpToolService {
             }
         } catch (Exception e) {
             log.error("测试MCP工具失败: {} - {}", tool.getName(), e.getMessage());
-            return McpToolTestResult.fail("测试失败: " + e.getMessage());
+            String errorMsg = e.getMessage();
+            if (errorMsg != null && errorMsg.contains("Process has exited")) {
+                errorMsg = "工具命令行进程启动后即异常退出（Process has exited）。可能原因：1. 该 npm/python 命令行包不存在或版本错误；2. 工具需要必填的环境变量（请点击 [编辑] 在 env 中补充配置 API Key）";
+            }
+            return McpToolTestResult.fail("测试失败: " + errorMsg);
         }
     }
 
@@ -220,7 +224,8 @@ public class McpToolServiceImpl implements IMcpToolService {
         wrapper.eq(StringUtils.hasText(bo.getType()), McpTool::getType, bo.getType())
             .eq(StringUtils.hasText(bo.getStatus()), McpTool::getStatus, bo.getStatus())
             .like(StringUtils.hasText(bo.getName()), McpTool::getName, bo.getName())
-            .like(StringUtils.hasText(bo.getDescription()), McpTool::getDescription, bo.getDescription());
+            .like(StringUtils.hasText(bo.getDescription()), McpTool::getDescription, bo.getDescription())
+            .orderByAsc(McpTool::getId);
         return wrapper;
     }
 }

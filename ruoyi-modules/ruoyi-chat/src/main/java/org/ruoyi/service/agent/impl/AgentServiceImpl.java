@@ -24,14 +24,13 @@ import org.ruoyi.mapper.agent.AgentMapper;
 import org.ruoyi.mapper.mcp.McpToolMapper;
 import org.ruoyi.service.agent.IAgentService;
 import org.ruoyi.service.knowledge.IKnowledgeInfoService;
+import org.ruoyi.common.satoken.utils.LoginHelper;
+import org.ruoyi.system.api.model.RoleDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -109,7 +108,47 @@ public class AgentServiceImpl implements IAgentService {
         wrapper.eq(Agent::getStatus, "0")
             .orderByDesc(Agent::getUpdateTime)
             .orderByDesc(Agent::getId);
-        return baseMapper.selectList(wrapper).stream().map(this::toVo).toList();
+        List<AgentVo> list = baseMapper.selectList(wrapper).stream().map(this::toVo).toList();
+
+        // 校验超级管理员直接通关
+        if (LoginHelper.isSuperAdmin() || LoginHelper.isAdmin()) {
+            return list;
+        }
+
+        Long userId = LoginHelper.getUserId();
+        Long userDeptId = LoginHelper.getDeptId();
+        List<RoleDTO> userRoles = LoginHelper.getRoles();
+        Set<String> userRoleIds = userRoles != null
+            ? userRoles.stream().map(r -> String.valueOf(r.getRoleId())).collect(Collectors.toSet())
+            : Collections.emptySet();
+
+        return list.stream().filter(agent -> {
+            // 0 仅自己可见校验
+            if (agent.getIsPublic() != null && agent.getIsPublic() == 0) {
+                if (!LoginHelper.isSuperAdmin() && !Objects.equals(agent.getCreateBy(), userId)) {
+                    return false;
+                }
+            }
+
+            if (agent.getVisibleScope() == null || agent.getVisibleScope() == 0) {
+                return true; // 0 全员公开
+            }
+            // 校验部门 IDs
+            if (StringUtils.isNotBlank(agent.getDeptIds()) && userDeptId != null) {
+                List<String> deptIdList = Arrays.asList(agent.getDeptIds().split(","));
+                if (deptIdList.contains(String.valueOf(userDeptId))) {
+                    return true;
+                }
+            }
+            // 校验角色 IDs
+            if (StringUtils.isNotBlank(agent.getRoleIds()) && !userRoleIds.isEmpty()) {
+                List<String> roleIdList = Arrays.asList(agent.getRoleIds().split(","));
+                if (roleIdList.stream().anyMatch(userRoleIds::contains)) {
+                    return true;
+                }
+            }
+            return false;
+        }).toList();
     }
 
     @Override
@@ -144,6 +183,11 @@ public class AgentServiceImpl implements IAgentService {
         vo.setEnableThinking(entity.getEnableThinking());
         vo.setSystemPrompt(entity.getSystemPrompt());
         vo.setStatus(entity.getStatus());
+        vo.setIsPublic(entity.getIsPublic());
+        vo.setScopeLevel(entity.getScopeLevel());
+        vo.setVisibleScope(entity.getVisibleScope());
+        vo.setDeptIds(entity.getDeptIds());
+        vo.setRoleIds(entity.getRoleIds());
         vo.setRemark(entity.getRemark());
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());

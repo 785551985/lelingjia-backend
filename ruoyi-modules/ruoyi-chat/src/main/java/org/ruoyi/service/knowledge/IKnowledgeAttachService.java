@@ -82,4 +82,13 @@ public interface IKnowledgeAttachService {
     void parse(Long id);
 
     KnowledgeReparseVo reparseKnowledge(Long knowledgeId);
+
+    /**
+     * 初始化预设模板文档并自动解析入库
+     *
+     * @param knowledgeId 知识库ID
+     * @param templateKey 模板 key（faq/rule/sop/product/contract/case/training）
+     * @param docName     附件显示名称
+     */
+    void initTemplate(Long knowledgeId, String templateKey, String docName);
 }

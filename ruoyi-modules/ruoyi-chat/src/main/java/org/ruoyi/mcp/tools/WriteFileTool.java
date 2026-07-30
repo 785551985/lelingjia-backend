@@ -26,9 +26,7 @@ import java.nio.file.StandardOpenOption;
 @Component
 public class WriteFileTool implements BuiltinToolProvider {
 
-    public static final String DESCRIPTION = "Creates or overwrites a file with the given content. " +
-        "Creates parent directories if missing. Overwrites existing file. " +
-        "Use absolute paths within the workspace directory.";
+    public static final String DESCRIPTION = "新建本地文本/代码文件或覆盖写入最新内容。";
 
     private final String rootDirectory;
     private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(getClass());

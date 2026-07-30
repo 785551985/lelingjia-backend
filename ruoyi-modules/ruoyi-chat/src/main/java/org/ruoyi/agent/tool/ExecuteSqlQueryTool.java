@@ -40,7 +40,7 @@ public class ExecuteSqlQueryTool implements BuiltinToolProvider {
      * @param sql 要执行的 SELECT SQL 语句，例如：SELECT * FROM sys_user
      * @return 包含查询结果的字符串
      */
-    @Tool("Execute a SELECT SQL query and return the results. Example: SELECT * FROM sys_user")
+    @Tool("自动执行只读或统计类 SELECT SQL 查询语句，用于生成分析报表与指标检索")
     public String executeSql(String sql) {
         // 2. 手动推入数据源上下文
 //        DynamicDataSourceContextHolder.push("agent");
@@ -194,6 +194,6 @@ public class ExecuteSqlQueryTool implements BuiltinToolProvider {
 
     @Override
     public String getDescription() {
-        return "Execute a SELECT SQL query and return the results. Example: SELECT * FROM sys_user";
+        return "自动执行只读或统计类 SELECT SQL 查询语句，用于生成分析报表与指标检索";
     }
 }

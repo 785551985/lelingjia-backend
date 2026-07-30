@@ -43,6 +43,11 @@ CREATE TABLE agent_info  (
                                create_time timestamp NULL DEFAULT NULL,
                                update_by bigint NULL DEFAULT NULL,
                                update_time timestamp NULL DEFAULT NULL,
+                               visible_scope smallint NULL DEFAULT 0,
+                               dept_ids varchar(500) NULL DEFAULT NULL,
+                               role_ids varchar(500) NULL DEFAULT NULL,
+                               is_public smallint NULL DEFAULT 1,
+                               scope_level smallint NULL DEFAULT 1,
                                PRIMARY KEY (id)   
 ) ;
 

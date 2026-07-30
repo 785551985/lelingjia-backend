@@ -6,6 +6,9 @@ import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 import org.ruoyi.domain.entity.knowledge.KnowledgeAttach;
 
+import org.ruoyi.common.translation.annotation.Translation;
+import org.ruoyi.common.translation.constant.TransConstant;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -103,8 +106,14 @@ public class KnowledgeAttachVo implements Serializable {
     private String knowledgeName;
 
     /**
+     * 创建者用户ID/账号
+     */
+    private String createBy;
+
+    /**
      * 创建人/上传者姓名
      */
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "createBy")
     private String createByName;
 
     /**

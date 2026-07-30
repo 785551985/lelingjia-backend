@@ -235,6 +235,17 @@ public class SysLoginService {
         }
         SysTenantVo tenant = tenantService.queryByTenantId(tenantId);
         if (ObjectUtil.isNull(tenant)) {
+            List<SysTenantVo> list = tenantService.queryList(new SysTenantBo());
+            if (ObjectUtil.isNotEmpty(list)) {
+                SysTenantVo matched = list.stream()
+                    .filter(t -> tenantId.equalsIgnoreCase(t.getTenantId()) || tenantId.equals(t.getCompanyName()))
+                    .findFirst().orElse(null);
+                if (ObjectUtil.isNotNull(matched)) {
+                    tenant = matched;
+                }
+            }
+        }
+        if (ObjectUtil.isNull(tenant)) {
             log.info("登录租户：{} 不存在.", tenantId);
             throw new TenantException("tenant.not.exists");
         } else if (SystemConstants.DISABLE.equals(tenant.getStatus())) {

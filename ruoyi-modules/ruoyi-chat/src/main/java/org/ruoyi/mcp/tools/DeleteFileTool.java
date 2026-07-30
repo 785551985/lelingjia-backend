@@ -26,9 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class DeleteFileTool implements BuiltinToolProvider {
 
-    public static final String DESCRIPTION = "Deletes a file or directory. " +
-        "Set recursive=true to delete a non-empty directory. " +
-        "Use absolute paths within the workspace directory.";
+    public static final String DESCRIPTION = "安全删除指定的本地文本文件或临时文件。";
 
     private final String rootDirectory;
     private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(getClass());

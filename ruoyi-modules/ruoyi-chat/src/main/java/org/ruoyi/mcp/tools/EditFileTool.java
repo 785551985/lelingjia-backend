@@ -21,9 +21,7 @@ import java.nio.file.StandardOpenOption;
 @Component
 public class EditFileTool implements BuiltinToolProvider {
 
-    public static final String DESCRIPTION = "Edits an existing file by replacing its full content. " +
-        "ALWAYS read the file first with read_file, then provide the COMPLETE new content here. " +
-        "Use absolute paths within the workspace directory.";
+    public static final String DESCRIPTION = "精确定位并修改指定文本、配置文件或代码文件中的特定行与内容块。";
 
     private final String rootDirectory;
     private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(getClass());

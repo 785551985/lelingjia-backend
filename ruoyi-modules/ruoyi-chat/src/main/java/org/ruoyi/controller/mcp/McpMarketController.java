@@ -131,11 +131,11 @@ public class McpMarketController extends BaseController {
      */
     @SaCheckPermission("mcp:market:query")
     @GetMapping("/{marketId}/tools")
-    public McpMarketToolListResult getMarketTools(
+    public R<McpMarketToolListResult> getMarketTools(
         @PathVariable Long marketId,
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int size) {
-        return mcpMarketService.getMarketTools(marketId, page, size);
+        return R.ok(mcpMarketService.getMarketTools(marketId, page, size));
     }
 
     /**
