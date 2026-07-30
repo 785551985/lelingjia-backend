@@ -29,6 +29,7 @@ import org.ruoyi.common.tenant.exception.TenantException;
 import org.ruoyi.common.tenant.helper.TenantHelper;
 import org.ruoyi.system.domain.SysUser;
 import org.ruoyi.system.domain.bo.SysSocialBo;
+import org.ruoyi.system.domain.bo.SysTenantBo;
 import org.ruoyi.system.domain.vo.*;
 import org.ruoyi.system.mapper.SysUserMapper;
 import org.springframework.beans.factory.annotation.Value;

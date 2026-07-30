@@ -25,7 +25,7 @@ import org.ruoyi.mapper.mcp.McpToolMapper;
 import org.ruoyi.service.agent.IAgentService;
 import org.ruoyi.service.knowledge.IKnowledgeInfoService;
 import org.ruoyi.common.satoken.utils.LoginHelper;
-import org.ruoyi.system.api.model.RoleDTO;
+import org.ruoyi.common.core.domain.dto.RoleDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
