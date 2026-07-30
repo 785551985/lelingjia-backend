@@ -25,7 +25,7 @@ import org.ruoyi.mapper.mcp.McpToolMapper;
 import org.ruoyi.service.agent.IAgentService;
 import org.ruoyi.service.knowledge.IKnowledgeInfoService;
 import org.ruoyi.common.satoken.utils.LoginHelper;
-import org.ruoyi.common.core.domain.dto.RoleDTO;
+import cn.hutool.core.util.StrUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -117,13 +117,14 @@ public class AgentServiceImpl implements IAgentService {
 
         Long userId = LoginHelper.getUserId();
         Long userDeptId = LoginHelper.getDeptId();
-        List<RoleDTO> userRoles = LoginHelper.getRoles();
-        Set<String> userRoleIds = userRoles != null
-            ? userRoles.stream().map(r -> String.valueOf(r.getRoleId())).collect(Collectors.toSet())
+        // LoginHelper 无 getRoles()，从 LoginUser 取角色权限 key Set
+        org.ruoyi.common.core.domain.model.LoginUser loginUser = LoginHelper.getLoginUser();
+        Set<String> userRoleKeys = (loginUser != null && loginUser.getRolePermission() != null)
+            ? loginUser.getRolePermission()
             : Collections.emptySet();
 
         return list.stream().filter(agent -> {
-            // 0 仅自己可见校验
+            // 仅自己可见：isPublic == 0 时只允许创建人或超管
             if (agent.getIsPublic() != null && agent.getIsPublic() == 0) {
                 if (!LoginHelper.isSuperAdmin() && !Objects.equals(agent.getCreateBy(), userId)) {
                     return false;
@@ -134,16 +135,16 @@ public class AgentServiceImpl implements IAgentService {
                 return true; // 0 全员公开
             }
             // 校验部门 IDs
-            if (StringUtils.isNotBlank(agent.getDeptIds()) && userDeptId != null) {
+            if (StrUtil.isNotBlank(agent.getDeptIds()) && userDeptId != null) {
                 List<String> deptIdList = Arrays.asList(agent.getDeptIds().split(","));
                 if (deptIdList.contains(String.valueOf(userDeptId))) {
                     return true;
                 }
             }
-            // 校验角色 IDs
-            if (StringUtils.isNotBlank(agent.getRoleIds()) && !userRoleIds.isEmpty()) {
+            // 校验角色权限 Keys
+            if (StrUtil.isNotBlank(agent.getRoleIds()) && !userRoleKeys.isEmpty()) {
                 List<String> roleIdList = Arrays.asList(agent.getRoleIds().split(","));
-                if (roleIdList.stream().anyMatch(userRoleIds::contains)) {
+                if (roleIdList.stream().anyMatch(userRoleKeys::contains)) {
                     return true;
                 }
             }
@@ -191,6 +192,7 @@ public class AgentServiceImpl implements IAgentService {
         vo.setRemark(entity.getRemark());
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());
+        vo.setCreateBy(entity.getCreateBy());
 
         // 展开 JSON 数组
         List<Long> toolIds = parseLongArray(entity.getMcpToolIds());

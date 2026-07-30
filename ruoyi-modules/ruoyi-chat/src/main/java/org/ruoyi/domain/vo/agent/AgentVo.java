@@ -147,4 +147,9 @@ public class AgentVo implements Serializable {
     @ExcelProperty(value = "更新时间")
     private Date updateTime;
 
+    /**
+     * 创建人用户ID（用于"仅自己可见"权限过滤）
+     */
+    private Long createBy;
+
 }
