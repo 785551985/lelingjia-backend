@@ -111,7 +111,7 @@ public class AgentServiceImpl implements IAgentService {
         List<AgentVo> list = baseMapper.selectList(wrapper).stream().map(this::toVo).toList();
 
         // 校验超级管理员直接通关
-        if (LoginHelper.isSuperAdmin() || LoginHelper.isAdmin()) {
+        if (LoginHelper.isSuperAdmin() || LoginHelper.isTenantAdmin()) {
             return list;
         }
 
