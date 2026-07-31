@@ -43,6 +43,13 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
+            # 0. 先更新服务器上的源代码目录，确保拿到 GitHub Actions 最新提交的增量 SQL 脚本
+            SQL_REPO_DIR="/www/wwwroot/dazhao_kb_src/lelingjia-backend"
+            if [ -d "$SQL_REPO_DIR" ]; then
+                echo "同步服务器端后端源码仓库..."
+                cd "$SQL_REPO_DIR" && git pull origin master || true
+            fi
+
             # 1. 自动扫描并执行数据库增量 SQL 脚本 (统一规范路径：sql/update)
             SQL_UPDATE_DIR="/www/wwwroot/dazhao_kb_src/lelingjia-backend/sql/update"
             if [ -d "$SQL_UPDATE_DIR" ]; then
