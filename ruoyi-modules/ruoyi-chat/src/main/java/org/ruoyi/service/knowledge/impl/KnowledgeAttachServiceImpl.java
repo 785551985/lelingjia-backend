@@ -359,8 +359,10 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
                 knowledgeFragment.setIdx(i);
                 knowledgeFragment.setContent(chunkList.get(i));
                 knowledgeFragment.setCreateTime(new Date());
-                knowledgeFragment.setCreateDept(attach.getCreateDept());
-                knowledgeFragment.setCreateBy(attach.getCreateBy());
+                Long deptId = attach.getCreateDept() != null ? attach.getCreateDept() : (org.ruoyi.common.satoken.utils.LoginHelper.getDeptId() != null ? org.ruoyi.common.satoken.utils.LoginHelper.getDeptId() : 103L);
+                Long userId = attach.getCreateBy() != null ? attach.getCreateBy() : (org.ruoyi.common.satoken.utils.LoginHelper.getUserId() != null ? org.ruoyi.common.satoken.utils.LoginHelper.getUserId() : 1L);
+                knowledgeFragment.setCreateDept(deptId);
+                knowledgeFragment.setCreateBy(userId);
                 knowledgeFragmentList.add(knowledgeFragment);
             }
             ChatModelVo chatModelVo = chatModelService.selectModelByName(knowledgeInfoVo.getEmbeddingModel());
@@ -481,8 +483,10 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
         frag.setIdx(0);
         frag.setContent(mdContent);
         frag.setCreateTime(new Date());
-        frag.setCreateDept(attach.getCreateDept());
-        frag.setCreateBy(attach.getCreateBy());
+        Long templateDeptId = attach.getCreateDept() != null ? attach.getCreateDept() : (org.ruoyi.common.satoken.utils.LoginHelper.getDeptId() != null ? org.ruoyi.common.satoken.utils.LoginHelper.getDeptId() : 103L);
+        Long templateUserId = attach.getCreateBy() != null ? attach.getCreateBy() : (org.ruoyi.common.satoken.utils.LoginHelper.getUserId() != null ? org.ruoyi.common.satoken.utils.LoginHelper.getUserId() : 1L);
+        frag.setCreateDept(templateDeptId);
+        frag.setCreateBy(templateUserId);
         knowledgeFragmentMapper.insert(frag);
 
         // 3. 触发异步向量化（parse 会读取 fragment 并向量化）
