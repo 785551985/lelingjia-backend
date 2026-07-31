@@ -20,9 +20,9 @@ COMMENT ON COLUMN sys_knowledge_template.template_name IS '范本显示名称';
 COMMENT ON COLUMN sys_knowledge_template.category IS '范本适用分类';
 COMMENT ON COLUMN sys_knowledge_template.content IS 'Markdown 富文本内容';
 
--- 初始化平台统一管理的示范范本全量数据 (支持重复运行更新)
+-- 初始化平台统一管理的示范范本全量数据 (使用 PostgreSQL Dollar Quoting $$ 防单引号截断)
 INSERT INTO sys_knowledge_template (id, template_key, template_name, category, content, sort_order) VALUES
-(1001, 'common', '企业公共基础知识库 - 示范指南规范手册', '通用管理', '# 企业公共基础知识库 - 示范指南规范手册
+(1001, 'common', '企业公共基础知识库 - 示范指南规范手册', '通用管理', $$# 企业公共基础知识库 - 示范指南规范手册
 
 ## 一、企业简介与发展历程
 乐龄家大健康科技集团成立于 2018 年，致力于打造全国领先的智能化、标准化综合健康管理与企业数字化服务平台。集团总部位于深圳，在全国拥有超过 20 家分支机构与区域分公司，服务覆盖企事业单位员工与社区家庭超 100 万人次。
@@ -44,9 +44,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 1. **职业操守**：严禁泄露集团及客户商业机密，严禁私下收受供应商礼品或回扣。
 2. **办公礼仪**：工作时间须按规定穿戴工牌，接待客户须使用标准文明用语。
 3. **信息安全**：下班离开工位须锁定电脑屏幕，敏感文档严禁通过私人邮箱传输。
-', 1),
+$$, 1),
 
-(1002, 'brand', '企业品牌与 VI 视觉规范标准手册', '品牌推广', '# 企业品牌与 VI 视觉规范标准手册
+(1002, 'brand', '企业品牌与 VI 视觉规范标准手册', '品牌VI', $$# 企业品牌与 VI 视觉规范标准手册
 
 ## 一、品牌定位与核心话术
 乐龄家品牌定位为：**“科技赋能、专业严谨、人文关怀、值得信赖”**。在对外宣传与品牌推介中，统一使用“乐龄家大健康科技”作为企业主体品牌名称。
@@ -62,9 +62,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 ## 三、Logo 使用规范与禁忌
 - **允许用法**：必须保持 Logo 原始宽高比例，浅色背景下使用蓝绿标准色彩版 Logo，深色背景下使用反白纯白版 Logo。
 - **严格禁止**：严禁任意拉伸或压缩 Logo 比例；严禁更改 Logo 固有字体；严禁在复杂图案背景上直接放置彩版 Logo。
-', 2),
+$$, 2),
 
-(1003, 'expert', '外部专家顾问与智库智囊名录手册', '专家人才', '# 外部专家顾问与智库智囊名录手册
+(1003, 'expert', '外部专家顾问与智库智囊名录手册', '专家智库', $$# 外部专家顾问与智库智囊名录手册
 
 ## 一、医疗健康与康复专家组
 | 专家姓名 | 职称/头衔 | 擅长领域 | 咨询预约规范 |
@@ -78,9 +78,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 | :--- | :--- | :--- | :--- |
 | 陈振华 律师 | 金融法律事务所 合伙人 | 企业劳动争议、商业合同合规 | 须通过集团法务部提交预约需求书 |
 | 董伟 注册会计师 | 税务会计师事务所 首席顾问 | 企业企业税务筹划、合规审计 | 每年财报季与专项审计期间预约对接 |
-', 3),
+$$, 3),
 
-(1004, 'faq', '对外客服常见问题解答 (FAQ) 标准库', '客服支持', '# 对外客服常见问题解答 (FAQ) 标准库
+(1004, 'faq', '对外客服常见问题解答 (FAQ) 标准库', '客服支持', $$# 对外客服常见问题解答 (FAQ) 标准库
 
 ## 一、系统账号与登录问题
 **Q1: 员工忘记系统登录密码该如何重置？**  
@@ -100,9 +100,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 | :--- | :--- | :--- |
 | 400-888-9999 (客服热线) | 周一至周日 08:30 - 20:30 | 30秒内人工接听 |
 | support@ylglxt.cn (技术支持) | 7x24 小时接收邮件 | 2小时内首次邮件回复 |
-', 4),
+$$, 4),
 
-(1005, 'training', '分支机构新人入职与培训手册', '培训发展', '# 分支机构新人入职与培训手册
+(1005, 'training', '分支机构新人入职与培训手册', '培训发展', $$# 分支机构新人入职与培训手册
 
 ## 一、新人入职首周标准培训日程表
 | 时间 | 培训主题 | 主讲/责任人 | 考核/交付方式 |
@@ -117,9 +117,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 1. **考勤指标**：试用期内无无故迟到早退，旷工次数为 0。
 2. **业务能力**：独立完成岗位 SOP 交付，试用期月度 KPI 达标率达到 85% 以上。
 3. **文化融入**：团队合作顺畅，无违纪或客户重大投诉记录。
-', 5),
+$$, 5),
 
-(1006, 'sop', '业务 SOP 与标准作业流程手册', '业务流程', '# 业务 SOP 与标准作业流程手册
+(1006, 'sop', '业务 SOP 与标准作业流程手册', '流程SOP', $$# 业务 SOP 与标准作业流程手册
 
 ## 一、客户接待与服务 5 步标准作业流程
 | 步骤 | 环节名称 | 标准动作要求 | 服务时限 | 责任岗位 |
@@ -134,9 +134,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 - **超时响应**：超时 15 分钟未接待，扣除当次服务绩效 20分。
 - **态度恶劣**：引致客户书面投诉经查证属实的，当月绩效清零并通报批评。
 - **隐私泄露**：未经客户授权擅自透露客户信息的，予以开除并追究法律责任。
-', 6),
+$$, 6),
 
-(1007, 'product', '产品与服务项目手册与报价清单', '产品报价', '# 产品与服务项目手册与报价清单
+(1007, 'product', '产品与服务项目手册与报价清单', '产品报价', $$# 产品与服务项目手册与报价清单
 
 ## 一、核心产品套餐与服务对比清单
 | 套餐名称 | 适用人群 | 核心服务内容 | 官方统一售价 | 企业团购优惠价 |
@@ -149,9 +149,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 ## 二、退款与变更政策
 1. 服务未启动前申请退款的，无条件全额退还扣除 3% 手续费后的剩余款项。
 2. 已完成部分体检或服务的，按单项原价扣除已消费部分后退还余款。
-', 7),
+$$, 7),
 
-(1008, 'rule', '分支机构通用管理制度与行为规范', '规章制度', '# 分支机构通用管理制度与行为规范
+(1008, 'rule', '分支机构通用管理制度与行为规范', '行政考勤', $$# 分支机构通用管理制度与行为规范
 
 ## 一、工时与考勤打卡管理规定
 - **标准工时**：周一至周五 09:00 - 18:00（午休时间：12:00 - 13:30）。
@@ -169,9 +169,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 | 病假 | 二级以上医院诊断证明与病历 | 1天内部门经理审批；>1天须总监及 HR 审批 |
 | 事假 | 详细书面事由说明 | 提前 1 天申请，部门经理及 HR 审批 |
 | 带薪年假 | 提前 3 天提交申请 | 部门经理及 HR 审批，需合理安排工作交接 |
-', 8),
+$$, 8),
 
-(1009, 'contract', '资质合规与标准合同文本规范', '合同法务', '# 资质合规与标准合同文本规范
+(1009, 'contract', '资质合规与标准合同文本规范', '资质合同', $$# 资质合规与标准合同文本规范
 
 ## 一、合同签署前置审查 checklist 表格
 | 审查要点 | 审查标准与要求 | 责任部门 |
@@ -184,9 +184,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 1. **商业保密条款**：双方应对在本合同签订与履行过程中知悉的对方商业秘密、技术数据及客户个人隐私承担永久保密义务。
 2. **违约责任计算**：任何一方无故单方解除合同的，须向守约方支付合同总金额 20% 的违约金，并赔偿由此造成的直接经济损失。
 3. **争议解决管辖**：因本合同引起的或与本合同有关的任何争议，双方应协商解决；协商不成的，统一向**合同签订地有管辖权的人民法院**提起诉讼。
-', 9),
+$$, 9),
 
-(1010, 'case', '优秀案例与最佳实践复盘手册', '案例总结', '# 优秀案例与最佳实践复盘手册
+(1010, 'case', '优秀案例与最佳实践复盘手册', '优秀案例', $$# 优秀案例与最佳实践复盘手册
 
 ## 一、标杆案例：某知名上市科技公司全员健康管理项目
 - **项目背景**：客户拥有 2,000+ 名研发工程师，久坐加班导致颈椎病、高血糖及高血压患病率达 42%，员工健康隐患大。
@@ -202,9 +202,9 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 ## 二、项目实施三大核心经验复盘
 1. **高管带头示范**：高管亲自参与健康测评打卡，带动全员参与氛围。
 2. **AI 知识库实时响应**：将考勤、福利与健康FAQ融入知识库，员工提问 3 秒内解答，极大降低行政客服压力。
-', 10),
+$$, 10),
 
-(1011, 'talent', '内部人才档案与专家骨干名录', '人才档案', '# 内部人才档案与专家骨干名录
+(1011, 'talent', '内部人才档案与专家骨干名录', '人才档案', $$# 内部人才档案与专家骨干名录
 
 ## 一、集团核心技术与业务骨干名录
 | 姓名 | 部门 | 现任岗位 | 核心专业特长 | 项目代表作 |
@@ -213,33 +213,42 @@ INSERT INTO sys_knowledge_template (id, template_key, template_name, category, c
 | 陈丽 | 企服运营中心 | 交付总监 | 客户关系管理、大型项目服务交付 | 2025 全国 20 分支机构标准化交付体系 |
 | 赵磊 | 研发与数字中心 | 首席 AI 架构师 | 大模型 RAG 架构、PostgreSQL 向量检索 | 乐龄家 AI 企业级知识库与智能体系统 |
 | 刘芳 | 法务合规部 | 资深合规专家 | 企业劳动用工风控、合同文本审查 | 集团全套资质合规与知识产权保护体系 |
-', 11)
+$$, 11)
 ON CONFLICT (template_key) DO UPDATE 
 SET template_name = EXCLUDED.template_name,
     category = EXCLUDED.category,
     content = EXCLUDED.content,
+    sort_order = EXCLUDED.sort_order,
     update_time = NOW();
 
--- 自动将数据库中现有存量的示范范本切片按照平台统一数据库最新内容刷一遍，保证预览100%生效
-UPDATE knowledge_fragment f
-SET content = t.content,
-    create_dept = COALESCE(f.create_dept, a.create_dept, 103),
-    create_by = COALESCE(f.create_by, a.create_by, 1)
-FROM knowledge_attach a
-JOIN sys_knowledge_template t ON (
-    (a.name LIKE '%' || t.template_name || '%') OR 
-    (a.name LIKE '%公共%' AND t.template_key = 'common') OR
-    (a.name LIKE '%SOP%' AND t.template_key = 'sop') OR
-    (a.name LIKE '%产品%' AND t.template_key = 'product') OR
-    (a.name LIKE '%通用管理%' AND t.template_key = 'rule') OR
-    (a.name LIKE '%合同%' AND t.template_key = 'contract') OR
-    (a.name LIKE '%专家%' AND t.template_key = 'expert') OR
-    (a.name LIKE '%FAQ%' AND t.template_key = 'faq') OR
-    (a.name LIKE '%培训%' AND t.template_key = 'training') OR
-    (a.name LIKE '%品牌%' AND t.template_key = 'brand') OR
-    (a.name LIKE '%案例%' AND t.template_key = 'case') OR
-    (a.name LIKE '%人才%' AND t.template_key = 'talent')
-)
-WHERE f.doc_id = a.doc_id AND a.oss_id IS NULL;
+-- 同时也自动将已存在的示范知识库分片关联刷为高品质内容
+UPDATE knowledge_fragment 
+SET content = EXCLUDED.content, update_time = NOW()
+FROM (VALUES
+    ('common', $$# 企业公共基础知识库 - 示范指南规范手册
+
+## 一、企业简介与发展历程
+乐龄家大健康科技集团成立于 2018 年，致力于打造全国领先的智能化、标准化综合健康管理与企业数字化服务平台。集团总部位于深圳，在全国拥有超过 20 家分支机构与区域分公司，服务覆盖企事业单位员工与社区家庭超 100 万人次。
+
+## 二、企业使命、愿景与核心价值观
+- **使命**：让每一位客户享受到专业、温暖、智能的标准化健康与企服体验。
+- **愿景**：成为中国最具数字科技魅力与人文温度的大健康企业生态圈。
+- **核心价值观**：客户第一、专业至上、诚信担当、创新共赢。
+
+## 三、集团组织架构与职能分工
+| 部门/架构 | 核心职能 | 主要交付物 | 负责人 |
+| :--- | :--- | :--- | :--- |
+| 集团总部 | 战略规划、资金调度、合规风控 | 集团年度战略计划与风控批复 | CEO 办公室 |
+| 医疗健康事业部 | 专业健康方案制定、专家顾问团运营 | 个人/企业健康评估报告 | 医疗总监 |
+| 企服运营中心 | 客户服务、交付跟踪、客户满意度管理 | 服务交付SOP与客户满意度大盘 | 运营总监 |
+| 研发与数字中心 | 知识库RAG平台、智能体系统研发 | 集团数字化平台与 AI 知识库系统 | CTO 办公室 |
+
+## 四、员工公共行为准则
+1. **职业操守**：严禁泄露集团及客户商业机密，严禁私下收受供应商礼品或回扣。
+2. **办公礼仪**：工作时间须按规定穿戴工牌，接待客户须使用标准文明用语。
+3. **信息安全**：下班离开工位须锁定电脑屏幕，敏感文档严禁通过私人邮箱传输。
+$$)
+) AS EXCLUDED(key, content)
+WHERE doc_name LIKE '%' || EXCLUDED.key || '%' OR doc_name LIKE '%示范%';
 
 COMMIT;
