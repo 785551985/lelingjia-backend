@@ -359,6 +359,8 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
                 knowledgeFragment.setIdx(i);
                 knowledgeFragment.setContent(chunkList.get(i));
                 knowledgeFragment.setCreateTime(new Date());
+                knowledgeFragment.setCreateDept(attach.getCreateDept());
+                knowledgeFragment.setCreateBy(attach.getCreateBy());
                 knowledgeFragmentList.add(knowledgeFragment);
             }
             ChatModelVo chatModelVo = chatModelService.selectModelByName(knowledgeInfoVo.getEmbeddingModel());
