@@ -34,7 +34,7 @@ jobs:
           target: '/www/wwwroot/backend/'
           strip_components: 2
 
-      - name: 5. 远程平滑重启 Java 服务
+      - name: 5. 远程自动同步 SQL 增量并平滑重启 Java 服务
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -43,6 +43,19 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
+            # 1. 自动扫描并执行数据库增量 SQL 脚本
+            SQL_UPDATE_DIR="/www/wwwroot/dazhao_kb_src/lelingjia-backend/sql/update"
+            if [ -d "$SQL_UPDATE_DIR" ]; then
+                echo "检查数据库 SQL 增量更新..."
+                for sql_file in $(ls ${SQL_UPDATE_DIR}/*.sql 2>/dev/null | sort); do
+                    if [ -f "$sql_file" ]; then
+                        echo "   执行增量 SQL: $(basename $sql_file)..."
+                        PGPASSWORD="dz123456" psql -h 127.0.0.1 -p 5372 -U dazhao_kb -d dazhao_kb -f "$sql_file" || true
+                    fi
+                done
+            fi
+
+            # 2. 平滑重启 Java 服务
             PID=$(ps -ef | grep ruoyi-admin.jar | grep -v grep | awk '{print $2}')
             if [ -n "$PID" ]; then
                 echo "停止旧进程 PID: $PID"
@@ -56,4 +69,4 @@ jobs:
               --spring.datasource.dynamic.datasource.master.username="dazhao_kb" \
               --spring.datasource.dynamic.datasource.password="dz123456" \
               > /www/wwwroot/backend/ruoyi.log 2>&1 &
-            echo "✅ 后端 Java 服务平滑重启完成！"
+            echo "✅ 后端 SQL 增量同步与 Java 服务平滑重启完成！"
