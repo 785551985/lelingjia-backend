@@ -77,6 +77,7 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
     private final VectorStoreService vectorStoreService;
     private final OssService ossService;
     private final KnowledgeRetrievalService knowledgeRetrievalService;
+    private final org.ruoyi.mapper.knowledge.SysKnowledgeTemplateMapper sysKnowledgeTemplateMapper;
 
     @Autowired
     private KnowledgeInfoMapper knowledgeInfoMapper;
@@ -472,8 +473,23 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
 
     @Override
     public void initTemplate(Long knowledgeId, String templateKey, String docName) {
-        String mdContent = TEMPLATE_CONTENT_MAP.getOrDefault(templateKey,
-            "# " + docName + "\n\n本文档为预设示范范本，请根据实际业务需要编辑修改。\n");
+        String mdContent = null;
+        try {
+            org.ruoyi.domain.entity.knowledge.SysKnowledgeTemplate template = sysKnowledgeTemplateMapper.selectOne(
+                Wrappers.<org.ruoyi.domain.entity.knowledge.SysKnowledgeTemplate>lambdaQuery()
+                    .eq(org.ruoyi.domain.entity.knowledge.SysKnowledgeTemplate::getTemplateKey, templateKey)
+                    .eq(org.ruoyi.domain.entity.knowledge.SysKnowledgeTemplate::getStatus, "0")
+            );
+            if (template != null && StringUtils.isNotBlank(template.getContent())) {
+                mdContent = template.getContent();
+            }
+        } catch (Exception e) {
+            log.warn("从数据库 sys_knowledge_template 表拉取范本失败，降级使用内置硬编码模版: {}", e.getMessage());
+        }
+        if (StringUtils.isBlank(mdContent)) {
+            mdContent = TEMPLATE_CONTENT_MAP.getOrDefault(templateKey,
+                "# " + docName + "\n\n本文档为预设示范范本，请根据实际业务需要编辑修改。\n");
+        }
 
         // 1. 创建附件记录（ossId=null 表示内置文本，无物理文件）
         KnowledgeAttach attach = new KnowledgeAttach();
