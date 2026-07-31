@@ -12,6 +12,8 @@
 
 ### 知识库范本与数据权限根治
 
+* **预设示范范本全量高品质重构升级** (`KnowledgeAttachServiceImpl.java`)
+  * 将系统内置的所有预设范本（包括通用制度、品牌 VI 规范、专家智库名录、客服 FAQ、入职培训 SOP、产品报价清单、资质合同审查等 10 余种示范模版）全量升级重构为富含多级 Markdown 章节标题、结构化数据表格、KPI 考核指标与详细标准条款的专业企业级示范文档，大幅提升预览体验与 RAG 问答召回丰富度。
 * **范本切片数据权限继承与预览恢复** (`KnowledgeAttachServiceImpl.java` / `20260731_fix_knowledge_fragment_permissions.sql`)
   * **后端数据权限字段补全**：修复 `KnowledgeAttachServiceImpl.initTemplate()` 创建范本切片时未继承 `createDept` 与 `createBy` 的 Bug，避免范本文本切片被若依框架 `DataPermission` 数据权限过滤器误杀截断导致预览返回空数据。
   * **数据库增量修复**：生成 `sql/update/20260731_fix_knowledge_fragment_permissions.sql`，修正现有存量范本切片的部门与创建人权限绑定，恢复预设范本的文字提取与在线预览全链路。
