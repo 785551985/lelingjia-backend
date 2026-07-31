@@ -479,6 +479,8 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
         frag.setIdx(0);
         frag.setContent(mdContent);
         frag.setCreateTime(new Date());
+        frag.setCreateDept(attach.getCreateDept());
+        frag.setCreateBy(attach.getCreateBy());
         knowledgeFragmentMapper.insert(frag);
 
         // 3. 触发异步向量化（parse 会读取 fragment 并向量化）
