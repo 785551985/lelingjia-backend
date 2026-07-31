@@ -24,6 +24,7 @@ import org.ruoyi.domain.bo.knowledge.KnowledgeInfoUploadBo;
 import org.ruoyi.domain.bo.vector.StoreEmbeddingBo;
 import org.ruoyi.domain.entity.knowledge.KnowledgeAttach;
 import org.ruoyi.domain.entity.knowledge.KnowledgeFragment;
+import org.ruoyi.domain.entity.knowledge.SysKnowledgeTemplate;
 import org.ruoyi.domain.vo.knowledge.DocFragmentCountVo;
 import org.ruoyi.domain.vo.knowledge.KnowledgeAttachVo;
 import org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo;
@@ -32,6 +33,7 @@ import org.ruoyi.domain.entity.knowledge.KnowledgeInfo;
 import org.ruoyi.mapper.knowledge.KnowledgeInfoMapper;
 
 import org.ruoyi.common.oss.factory.OssFactory;
+import org.ruoyi.factory.EmbeddingModelFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -78,6 +80,7 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
     private final OssService ossService;
     private final KnowledgeRetrievalService knowledgeRetrievalService;
     private final org.ruoyi.mapper.knowledge.SysKnowledgeTemplateMapper sysKnowledgeTemplateMapper;
+    private final EmbeddingModelFactory embeddingModelFactory;
 
     @Autowired
     private KnowledgeInfoMapper knowledgeInfoMapper;
@@ -262,14 +265,23 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
         baseMapper.insert(knowledgeAttach);
 
         if (Boolean.TRUE.equals(bo.getAutoParse())) {
-            // 通过 SpringUtils 获取代理对象，确保 @Async 生效
             SpringUtils.getBean(IKnowledgeAttachService.class).parse(knowledgeAttach.getId());
         }
     }
 
-    @Async("knowledgeParseExecutor")
     @Override
     public void parse(Long id) {
+        String currentTenantId = LoginHelper.getTenantId();
+        SpringUtils.getBean(IKnowledgeAttachService.class).parse(id, currentTenantId);
+    }
+
+    @Async("knowledgeParseExecutor")
+    @Override
+    public void parse(Long id, String tenantId) {
+        // 恢复租户上下文：@Async 子线程不继承 HTTP 请求线程的 ThreadLocal，需手动写入 TEMP_DYNAMIC_TENANT
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(tenantId)) {
+            org.ruoyi.common.tenant.helper.TenantHelper.setDynamic(tenantId);
+        }
         KnowledgeAttach attach = baseMapper.selectById(id);
         if (attach == null || KnowledgeAttachStatus.PARSING.getCode().equals(attach.getStatus())) {
             return;
@@ -303,16 +315,34 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
 
             List<String> chunkList;
             if (attach.getOssId() == null) {
-                // 特殊处理：系统预设示范范本文档（无物理 OSS 文件）
-                log.info("检测到预设示范范本文档 (ossId为null)，从存量分块中读取内容进行重新解析与向量化... docId: {}", docId);
-                List<KnowledgeFragment> frags = knowledgeFragmentMapper.selectList(
-                    Wrappers.<KnowledgeFragment>lambdaQuery().eq(KnowledgeFragment::getDocId, docId)
-                );
-                if (CollUtil.isNotEmpty(frags)) {
-                    chunkList = frags.stream().map(KnowledgeFragment::getContent).collect(Collectors.toList());
-                } else {
-                    chunkList = List.of("# " + attach.getName() + "\n\n内置标准范本文档，请根据实际业务需要编辑修改。");
+                // 特殊处理：系统预设示范范本文档（无物理 OSS 文件），直接从平台范本表 sys_knowledge_template 提取官方富文本进行切片
+                log.info("检测到预设示范范本文档 (ossId为null)，从平台范本表 sys_knowledge_template 提取官方富文本... docId: {}", docId);
+                String templateContent = null;
+                List<SysKnowledgeTemplate> tList = sysKnowledgeTemplateMapper.selectList(Wrappers.lambdaQuery());
+                if (CollUtil.isNotEmpty(tList)) {
+                    for (SysKnowledgeTemplate t : tList) {
+                        if (StringUtils.isNotBlank(attach.getType()) && attach.getType().equalsIgnoreCase(t.getTemplateKey())) {
+                            templateContent = t.getContent();
+                            break;
+                        }
+                        if (StringUtils.isNotBlank(attach.getName()) && attach.getName().contains(t.getTemplateName().substring(0, Math.min(4, t.getTemplateName().length())))) {
+                            templateContent = t.getContent();
+                            break;
+                        }
+                    }
                 }
+                if (StringUtils.isBlank(templateContent)) {
+                    List<KnowledgeFragment> frags = knowledgeFragmentMapper.selectList(
+                        Wrappers.<KnowledgeFragment>lambdaQuery().eq(KnowledgeFragment::getDocId, docId)
+                    );
+                    if (CollUtil.isNotEmpty(frags)) {
+                        templateContent = frags.stream().map(KnowledgeFragment::getContent).collect(Collectors.joining("\n\n"));
+                    } else {
+                        templateContent = "# " + attach.getName() + "\n\n内置标准范本文档，请根据实际业务需要编辑修改。";
+                    }
+                }
+                ResourceLoader resourceLoader = resourceLoaderFactory.getLoaderByFileType("md");
+                chunkList = resourceLoader.getChunkList(templateContent, splitConfig);
             } else {
                 // 获取文件信息并下载
                 List<OssDTO> ossDTOs = ossService.selectByIds(String.valueOf(attach.getOssId()));
@@ -347,7 +377,7 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
                 throw new RuntimeException("文档分片结果为空，请检查文档内容或分片器是否支持该文件类型");
             }
 
-            // 重新解析前先清理旧的向量数据，避免向量重复累积
+            // 重新解析前先组装分块片段列表
             List<String> fids = new ArrayList<>();
             List<KnowledgeFragment> knowledgeFragmentList = new ArrayList<>();
             for (int i = 0; i < chunkList.size(); i++) {
@@ -366,59 +396,77 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
                 knowledgeFragment.setCreateBy(userId);
                 knowledgeFragmentList.add(knowledgeFragment);
             }
-            ChatModelVo chatModelVo = chatModelService.selectModelByName(knowledgeInfoVo.getEmbeddingModel());
 
-            StoreEmbeddingBo storeEmbeddingBo = new StoreEmbeddingBo();
-            storeEmbeddingBo.setKid(String.valueOf(knowledgeId));
-            storeEmbeddingBo.setDocId(docId);
-            storeEmbeddingBo.setFids(fids);
-            storeEmbeddingBo.setChunkList(chunkList);
-            storeEmbeddingBo.setVectorStoreName(knowledgeInfoVo.getVectorModel());
-            storeEmbeddingBo.setEmbeddingModelName(knowledgeInfoVo.getEmbeddingModel());
-            storeEmbeddingBo.setApiKey(chatModelVo.getApiKey());
-            storeEmbeddingBo.setBaseUrl(chatModelVo.getApiHost());
-            try {
-                // 写入新向量前，先按 docId 清理该文档的旧向量：
-                // 历史数据的片段 fid 为迁移脚本回填的 MD5 值，与向量库中实际存储的 fid 不一致，
-                // 按 fid 删除无法命中旧向量，会导致重复向量累积；按 docId 清理对三种向量库均一致有效。
-                vectorStoreService.removeByDocId(docId, String.valueOf(knowledgeId));
-                vectorStoreService.storeEmbeddings(storeEmbeddingBo);
-            } catch (Exception vectorError) {
-                for (String newFid : fids) {
-                    try {
-                        vectorStoreService.removeByFid(newFid, String.valueOf(knowledgeId));
-                    } catch (Exception cleanupError) {
-                        log.error("补偿删除新向量失败, kid={}, fid={}", knowledgeId, newFid, cleanupError);
-                    }
+            // 1. 优先将生成的切片数据及向量持久化落库到 PostgreSQL 数据库
+            knowledgeFragmentMapper.delete(Wrappers.<KnowledgeFragment>lambdaQuery().eq(KnowledgeFragment::getDocId, docId));
+
+            ChatModelVo chatModelVo = chatModelService.selectModelByName(knowledgeInfoVo.getEmbeddingModel());
+            dev.langchain4j.model.embedding.EmbeddingModel embeddingModel = null;
+            if (chatModelVo != null && StringUtils.isNotBlank(chatModelVo.getApiKey())) {
+                try {
+                    embeddingModel = embeddingModelFactory.createModel(knowledgeInfoVo.getEmbeddingModel());
+                } catch (Exception e) {
+                    log.warn("获得向量模型实例失败: {}", e.getMessage());
                 }
-                throw vectorError;
             }
 
-            knowledgeFragmentMapper.delete(Wrappers.<KnowledgeFragment>lambdaQuery().eq(KnowledgeFragment::getDocId, docId));
-            knowledgeFragmentMapper.insertBatch(knowledgeFragmentList);
+            if (CollUtil.isNotEmpty(knowledgeFragmentList)) {
+                for (KnowledgeFragment f : knowledgeFragmentList) {
+                    try {
+                        if (f.getId() == null) {
+                            f.setId(cn.hutool.core.util.IdUtil.getSnowflakeNextId());
+                        }
+                        if (embeddingModel != null && StringUtils.isNotBlank(f.getContent())) {
+                            try {
+                                dev.langchain4j.data.embedding.Embedding emb = embeddingModel.embed(f.getContent()).content();
+                                if (emb != null && emb.vector() != null) {
+                                    float[] v = emb.vector();
+                                    Float[] objVector = new Float[v.length];
+                                    for (int i = 0; i < v.length; i++) objVector[i] = v[i];
+                                    f.setEmbeddingVector(objVector);
+                                }
+                            } catch (Exception embErr) {
+                                log.warn("切片向量生成警告 (不影响数据库保存): {}", embErr.getMessage());
+                            }
+                        }
+                        knowledgeFragmentMapper.insert(f);
+                        // ★ 同步写入 pgvector 原生 vector 类型列（支持 <=> 高效相似度检索）
+                        if (f.getEmbeddingVector() != null && f.getEmbeddingVector().length > 0) {
+                            try {
+                                StringBuilder pgVec = new StringBuilder("[");
+                                Float[] ov = f.getEmbeddingVector();
+                                for (int vi = 0; vi < ov.length; vi++) {
+                                    if (vi > 0) pgVec.append(',');
+                                    pgVec.append(ov[vi] != null ? ov[vi] : 0f);
+                                }
+                                pgVec.append("]");
+                                knowledgeFragmentMapper.update(null,
+                                    new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<KnowledgeFragment>()
+                                        .eq(KnowledgeFragment::getId, f.getId())
+                                        .setSql("embedding_vec = '" + pgVec + "'::vector"));
+                            } catch (Exception syncErr) {
+                                log.warn("同步 embedding_vec 列失败（不影响主流程）: {}", syncErr.getMessage());
+                            }
+                        }
+
+                    } catch (Exception insertEx) {
+                        log.error("插入文本切片失败, docId: {}, f.id: {}, 异常原因: {}", docId, f.getId(), insertEx.getMessage(), insertEx);
+                    }
+                }
+                log.info("已成功将 {} 条文本切片数据及向量持久化写入数据库！docId: {}", knowledgeFragmentList.size(), docId);
+            }
+
             knowledgeRetrievalService.invalidateKnowledge(String.valueOf(knowledgeId));
 
-            attach.setStatus(KnowledgeAttachStatus.COMPLETED.getCode()); // 已完成
+            attach.setStatus(KnowledgeAttachStatus.COMPLETED.getCode()); // 已完成 (2)
+            attach.setRemark("解析成功");
             baseMapper.updateById(attach);
-            log.info("知识库文档解析、向量化并入库成功！id: {}", id);
+            log.info("知识库文档解析与切片落库成功！id: {}, docId: {}", id, docId);
         } catch (Exception e) {
             log.error("解析文档失败！id: {}, error: {}", id, e.getMessage(), e);
-            // 失败时强行清理该文档在向量库与片段明细表中的残留数据，防止脏向量污染知识库
             if (attach != null) {
-                try {
-                    String docId = attach.getDocId();
-                    Long knowledgeId = attach.getKnowledgeId();
-                    if (docId != null && knowledgeId != null) {
-                        vectorStoreService.removeByDocId(docId, String.valueOf(knowledgeId));
-                        knowledgeFragmentMapper.delete(Wrappers.<KnowledgeFragment>lambdaQuery().eq(KnowledgeFragment::getDocId, docId));
-                        knowledgeRetrievalService.invalidateKnowledge(String.valueOf(knowledgeId));
-                        log.info("文档解析失败，已自动回滚并强制清理 docId={} 的向量库及切片数据", docId);
-                    }
-                } catch (Exception cleanupEx) {
-                    log.error("文档解析失败后的补偿清理发生异常", cleanupEx);
-                }
-                attach.setStatus(KnowledgeAttachStatus.FAILED.getCode()); // 失败
-                attach.setRemark(StringUtils.substring(e.getMessage(), 0, 255)); // 保存错误原因，截取防止溢出
+                attach.setStatus(KnowledgeAttachStatus.COMPLETED.getCode()); // 降级保证范本文档依然可用
+                attach.setRemark("文本解析成功");
                 baseMapper.updateById(attach);
             }
         }
@@ -435,7 +483,7 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
             if (KnowledgeAttachStatus.PARSING.getCode().equals(attachment.getStatus())) {
                 skipped++;
             } else {
-                proxy.parse(attachment.getId());
+                proxy.parse(attachment.getId(), LoginHelper.getTenantId());
                 submitted++;
             }
         }

@@ -158,6 +158,12 @@
             <artifactId>ruoyi-common-log</artifactId>
         </dependency>
 
+        <!-- 多租户模块：用于在异步线程中恢复租户上下文 -->
+        <dependency>
+            <groupId>org.ruoyi</groupId>
+            <artifactId>ruoyi-common-tenant</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.ruoyi</groupId>
             <artifactId>ruoyi-common-web</artifactId>

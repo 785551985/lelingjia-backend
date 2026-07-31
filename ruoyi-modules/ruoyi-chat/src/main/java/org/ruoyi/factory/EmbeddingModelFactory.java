@@ -43,8 +43,13 @@ public class EmbeddingModelFactory {
         return modelCache.computeIfAbsent(embeddingModelName, name -> {
             ChatModelVo modelConfig = chatModelService.selectModelByName(embeddingModelName);
 
+            if (modelConfig == null && ("text-embedding-v3".equalsIgnoreCase(name) || "text-embedding-ada-002".equalsIgnoreCase(name))) {
+                log.info("触发向量模型别名映射，将 [{}] 智能对齐匹配至系统的 [embedding-3]", name);
+                modelConfig = chatModelService.selectModelByName("embedding-3");
+            }
+
             if (modelConfig == null) {
-                throw new IllegalArgumentException("未找到模型配置，name=" + name);
+                throw new IllegalArgumentException("未找到向量模型配置，name=" + name);
             }
             return createModelInstance(modelConfig.getProviderCode(), modelConfig);
         });

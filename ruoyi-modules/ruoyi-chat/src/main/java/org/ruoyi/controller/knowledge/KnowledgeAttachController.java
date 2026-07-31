@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.*;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import org.ruoyi.domain.bo.knowledge.KnowledgeAttachBo;
 import org.ruoyi.domain.bo.knowledge.KnowledgeInfoUploadBo;
 import org.ruoyi.domain.vo.knowledge.KnowledgeAttachVo;
@@ -97,7 +98,7 @@ public class KnowledgeAttachController extends BaseController {
      *
      * @param ids 主键串
      */
-    @SaCheckPermission("system:attach:remove")
+    @SaCheckPermission(value = {"system:info:remove", "system:attach:remove"}, mode = SaMode.OR)
     @Log(title = "知识库附件", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ids}")
     public R<Void> remove(@NotEmpty(message = "主键不能为空")
@@ -109,7 +110,7 @@ public class KnowledgeAttachController extends BaseController {
      * 上传知识库附件
      * 注意：multipart 上传不能加 @RepeatSubmit（其参数序列化不支持 MultipartFile）
      */
-    @SaCheckPermission("system:attach:add")
+    @SaCheckPermission(value = {"system:info:add", "system:attach:add"}, mode = SaMode.OR)
     @Log(title = "知识库附件", businessType = BusinessType.INSERT)
     @PostMapping(value = "/upload")
     public R<String> upload(KnowledgeInfoUploadBo bo){
@@ -122,7 +123,7 @@ public class KnowledgeAttachController extends BaseController {
      *
      * @param id 附件ID
      */
-    @SaCheckPermission("system:attach:edit")
+    @SaCheckPermission(value = {"system:info:edit", "system:attach:edit"}, mode = SaMode.OR)
     @Log(title = "知识库附件", businessType = BusinessType.UPDATE)
     @PostMapping("/parse/{id}")
     @RepeatSubmit()
@@ -131,7 +132,7 @@ public class KnowledgeAttachController extends BaseController {
         return R.ok();
     }
 
-    @SaCheckPermission("system:attach:edit")
+    @SaCheckPermission(value = {"system:info:edit", "system:attach:edit"}, mode = SaMode.OR)
     @Log(title = "知识库附件批量重新解析", businessType = BusinessType.UPDATE)
     @PostMapping("/reparse/knowledge/{knowledgeId}")
     @RepeatSubmit()
@@ -142,7 +143,7 @@ public class KnowledgeAttachController extends BaseController {
     /**
      * 初始化预设模板文档（创建内置范本并触发向量化）
      */
-    @SaCheckPermission("system:attach:add")
+    @SaCheckPermission(value = {"system:info:add", "system:attach:add"}, mode = SaMode.OR)
     @Log(title = "知识库附件", businessType = BusinessType.INSERT)
     @PostMapping("/init-template")
     public R<Void> initTemplate(@RequestParam Long knowledgeId,

@@ -1,5 +1,6 @@
 package org.ruoyi.controller.mcp;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class McpMarketController extends BaseController {
     /**
      * 查询市场列表
      */
-    @SaCheckPermission("mcp:market:list")
+    @SaCheckLogin
     @GetMapping("/list")
     public TableDataInfo<McpMarketVo> list(McpMarketBo bo, PageQuery pageQuery) {
         return mcpMarketService.selectPageList(bo, pageQuery);
@@ -48,7 +49,7 @@ public class McpMarketController extends BaseController {
     /**
      * 查询市场列表（不分页）
      */
-    @SaCheckPermission("mcp:market:list")
+    @SaCheckLogin
     @GetMapping("/all")
     public McpMarketListResult listAll(
         @RequestParam(required = false) String keyword,

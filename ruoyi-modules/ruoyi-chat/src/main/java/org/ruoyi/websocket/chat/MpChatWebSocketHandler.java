@@ -14,6 +14,7 @@ import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.Query;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ruoyi.common.chat.domain.bo.chat.ChatModelBo;
@@ -216,13 +217,22 @@ public class MpChatWebSocketHandler extends AbstractWebSocketHandler {
         if (agentVo != null && agentVo.getKnowledgeIds() != null) {
             kids.addAll(agentVo.getKnowledgeIds());
         }
-        if (StringUtils.isBlank(knowledgeId) && kids.isEmpty()) {
-            return content;
-        }
         if (StringUtils.isNotBlank(knowledgeId)) {
             try {
                 kids.add(Long.valueOf(knowledgeId));
             } catch (NumberFormatException ignored) {
+            }
+        }
+        // 当智能体【关联知识库】留空且未显式指定 knowledgeId 时，自动自动检索当前员工全量权限可访问知识库
+        if (kids.isEmpty()) {
+            try {
+                List<org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo> accessibleKbs = knowledgeInfoService.queryList(new org.ruoyi.domain.bo.knowledge.KnowledgeInfoBo());
+                if (accessibleKbs != null && !accessibleKbs.isEmpty()) {
+                    kids = accessibleKbs.stream().map(org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo::getId).collect(Collectors.toList());
+                    log.info("WebSocket 对话 - 智能体关联知识库留空，已自动降级开启全权限知识库检索, 可见数量: {}", kids.size());
+                }
+            } catch (Exception e) {
+                log.warn("WebSocket 对话 - 获取员工全量权限知识库失败: err={}", e.getMessage());
             }
         }
         if (kids.isEmpty()) {

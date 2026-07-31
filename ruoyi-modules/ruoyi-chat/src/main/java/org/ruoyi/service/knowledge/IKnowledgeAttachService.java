@@ -81,6 +81,14 @@ public interface IKnowledgeAttachService {
      */
     void parse(Long id);
 
+    /**
+     * 解析附件知识片段（指定租户ID）
+     *
+     * @param id       附件ID
+     * @param tenantId 租户ID
+     */
+    void parse(Long id, String tenantId);
+
     KnowledgeReparseVo reparseKnowledge(Long knowledgeId);
 
     /**

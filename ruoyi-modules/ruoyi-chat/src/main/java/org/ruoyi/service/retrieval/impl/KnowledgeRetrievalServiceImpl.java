@@ -161,20 +161,29 @@ public class KnowledgeRetrievalServiceImpl implements KnowledgeRetrievalService 
                 }
             });
 
-            List<KnowledgeRetrievalVo> vectorResults = vectorFuture.get();
-            List<KnowledgeRetrievalVo> keywordResults = keywordFuture.get();
+            List<KnowledgeRetrievalVo> vectorResults;
+            try {
+                // embedding 向量已缓存后剩余均为本地 CPU 计算，15s 足够兜底极端情况
+                vectorResults = vectorFuture.get(15000, java.util.concurrent.TimeUnit.MILLISECONDS);
+            } catch (Exception timeoutOrErr) {
+                log.warn("向量检索响应超时或异常，自动降级为全文本模糊匹配: {}", timeoutOrErr.getMessage());
+                vectorResults = Collections.emptyList();
+            }
+
+            List<KnowledgeRetrievalVo> keywordResults;
+            try {
+                keywordResults = keywordFuture.get(15000, java.util.concurrent.TimeUnit.MILLISECONDS);
+            } catch (Exception timeoutOrErr) {
+                keywordResults = Collections.emptyList();
+            }
 
             // C. RRF 融合
             double alpha = queryVectorBo.getHybridAlpha() != null ? queryVectorBo.getHybridAlpha() : 0.5;
             return calculateRRF(vectorResults, keywordResults, alpha);
 
         } catch (Exception e) {
-            log.error("混合检索执行失败，回退到纯向量检索: {}", e.getMessage(), e);
-            try {
-                return vectorStoreService.search(copyOf(queryVectorBo, targetMaxResults));
-            } catch (Exception vectorError) {
-                throw new ServiceException("知识库检索不可用：向量与混合检索均失败");
-            }
+            log.error("混合检索执行异常: {}", e.getMessage());
+            return Collections.emptyList();
         }
     }
 

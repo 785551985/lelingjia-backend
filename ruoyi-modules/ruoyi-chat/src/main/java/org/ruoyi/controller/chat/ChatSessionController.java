@@ -69,7 +69,7 @@ public class ChatSessionController extends BaseController {
      *
      * @param id 主键
      */
-    @SaCheckPermission("system:session:query")
+    @SaCheckLogin
     @GetMapping("/{id}")
     public R<ChatSessionVo> getInfo(@NotNull(message = "主键不能为空")
                                      @PathVariable Long id) {
@@ -79,7 +79,7 @@ public class ChatSessionController extends BaseController {
     /**
      * 新增会话管理
      */
-    @SaCheckPermission("system:session:add")
+    @SaCheckLogin
     @Log(title = "会话管理", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping()
@@ -93,7 +93,7 @@ public class ChatSessionController extends BaseController {
     /**
      * 修改会话管理
      */
-    @SaCheckPermission("system:session:edit")
+    @SaCheckLogin
     @Log(title = "会话管理", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
     @PutMapping()
@@ -106,7 +106,7 @@ public class ChatSessionController extends BaseController {
      *
      * @param ids 主键串
      */
-    @SaCheckPermission("system:session:remove")
+    @SaCheckLogin
     @Log(title = "会话管理", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ids}")
     public R<Void> remove(@NotEmpty(message = "主键不能为空")

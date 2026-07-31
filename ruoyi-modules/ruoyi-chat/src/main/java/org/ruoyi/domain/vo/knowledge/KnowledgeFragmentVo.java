@@ -63,5 +63,10 @@ public class KnowledgeFragmentVo implements Serializable {
      */
     private Long knowledgeId;
 
+    /**
+     * pgvector 余弦相似度分值（由 searchByVector 原生 SQL 返回，范围 0~1）
+     */
+    private Double score;
 
 }
+

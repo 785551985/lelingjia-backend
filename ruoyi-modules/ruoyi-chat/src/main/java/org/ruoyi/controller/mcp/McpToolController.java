@@ -1,5 +1,6 @@
 package org.ruoyi.controller.mcp;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class McpToolController extends BaseController {
     /**
      * 查询 MCP 工具列表
      */
-    @SaCheckPermission("mcp:tool:list")
+    @SaCheckLogin
     @GetMapping("/list")
     public TableDataInfo<McpToolVo> list(McpToolBo bo, PageQuery pageQuery) {
         return mcpToolService.selectPageList(bo, pageQuery);
@@ -46,7 +47,7 @@ public class McpToolController extends BaseController {
     /**
      * 查询 MCP 工具列表（不分页）
      */
-    @SaCheckPermission("mcp:tool:list")
+    @SaCheckLogin
     @GetMapping("/all")
     public R<McpToolListResult> listAll(
         @RequestParam(required = false) String keyword,

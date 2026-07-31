@@ -108,7 +108,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class ChatServiceFacade implements IChatService {
 
-    private static final Integer DEFAULT_MAX_MESSAGES = 20;
+    private static final Integer DEFAULT_MAX_MESSAGES = 6;
 
     private final IChatModelService chatModelService;
 
@@ -135,6 +135,11 @@ public class ChatServiceFacade implements IChatService {
     private final IAgentService agentService;
 
     private final LangChain4jMcpToolProviderService langChain4jMcpToolProviderService;
+
+    /**
+     * Session 异步任务管理器：支持客户端关网页/暂停断开硬取消，以及连续快速提问自动打断上一条任务
+     */
+    private final Map<String, CompletableFuture<Void>> sessionTaskMap = new ConcurrentHashMap<>();
 
     /**
      * 内存实例缓存，避免同一会话重复创建
@@ -318,37 +323,40 @@ public class ChatServiceFacade implements IChatService {
             .responseStrategy(SupervisorResponseStrategy.LAST);
         SupervisorAgent supervisor = supervisorBuilder.build();
 
-        // 知识库增强：智能体绑定了知识库时，对 supervisor 输入做一次 RAG 增强（全程唯一一次检索）
-        RagAugmentResult ragResult = augmentAgentInput(chatRequest, agentVo);
+        // 知识库增强：使用 LLM 动态意图分类器进行智能意图路由与策略判定
+        RagAugmentResult ragResult = augmentAgentInput(chatRequest, agentVo, plannerModel);
         String augmentedInput = ragResult.getAugmentedPrompt();
         List<KnowledgeSourceDto> sourcesList = ragResult.getSources();
 
-        // 纯粹企业知识库与产品使用助手定位：未检索到知识库关联文档时，聚焦系统使用指导与知识库本身
-        if (sourcesList == null || sourcesList.isEmpty()) {
-            augmentedInput += "\n\n【知识库与产品助手回答指引】：\n"
-                + "你是乐龄家企业专属知识库助手，职责专注于：1. 解答本企业知识库内的文档、业务 SOP、规章制度与产品资质；2. 指导用户如何使用本 AI 知识库系统进行高效交互。\n"
-                + "1. **系统使用指导与问候**：如果用户在询问本系统的功能、使用方法、交互说明或日常问候（例如“你能做什么”、“怎么使用这个系统”、“如何提问”、“怎么预览原件”、“怎么提交领用申请”）：\n"
-                + "   请礼貌、清晰、分条理地为用户讲解系统的使用方法：\n"
-                + "   - 💡 **检索提问**：直接输入业务关键词（如“康复”、“发票”）或具体问题，系统会自动调取知识库准确解答；\n"
-                + "   - 📄 **原件受控预览**：回答下方会自动附带【参考来源卡片】，点击任意文件名即可打开带防伪水印的高清原件预览（支持 PDF、Excel 表格、Word 文档）；\n"
-                + "   - 📝 **无水印原件申请**：在预览弹窗底部可直接提交领用申请，经审批通过后即可下载无水印原件。\n"
-                + "2. **外部无关问题拦截**：对于未在当前知识库中检索到依据的外部无关问题（如通用写代码、生活娱乐、外部新闻）：\n"
-                + "   请统一礼貌回复：“抱歉，在当前企业知识库中未检索到相关文档。我是您的企业专属知识库助手，专注于解答本知识库内的业务 SOP、规章制度与本系统的使用操作。通用外部问题建议使用通用大模型查询哦，请问关于本企业知识库有哪些我可以帮您的？”";
-        }
 
         // 构建结构化 ChatMessage 列表（确保 SystemMessage 作为系统角色独立发送给大模型）
         List<ChatMessage> fullMessages = new ArrayList<>();
+        
+        String currentDateStr = java.time.LocalDateTime.now()
+            .format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日 E HH:mm", java.util.Locale.CHINA));
+
+        StringBuilder finalSystemPrompt = new StringBuilder();
+        finalSystemPrompt.append("【系统当前实时时间】：").append(currentDateStr).append("\n\n");
         if (agentVo != null && StringUtils.isNotBlank(agentVo.getSystemPrompt())) {
-            fullMessages.add(SystemMessage.from(agentVo.getSystemPrompt()));
+            finalSystemPrompt.append(agentVo.getSystemPrompt()).append("\n\n");
         }
-        if (chatRequest.getContextMessages() != null) {
-            int limit = chatRequest.getContextMessages().size();
-            // 排除最后一条原始 UserMessage
-            if (limit > 0 && chatRequest.getContextMessages().get(limit - 1) instanceof UserMessage) {
-                limit--;
+        finalSystemPrompt.append("【智能体执行与输出最高准则】：\n")
+            .append("1. **绝对聚焦当前最新提问**：请仅针对用户发送的最后一条最新提问进行解答！历史对话仅作为参考上下文，绝对禁止在当前回答中复读或重新解答上一轮历史对话中探讨过的旧问题（例如之前的“你能做什么”、“王明介绍”、“今天是星期几”等）！\n")
+            .append("2. **严禁自我介绍与套话**：无论用户问什么，绝对禁止在回答中输出“我是企业专属AI助手”、“我能为您做些什么”、“我来为您解答”等自我介绍模版！\n")
+            .append("3. **严禁分点复读历史**：绝对禁止采用 1. 2. 3. 列表的形式把历史对话中的多条问题重新梳理复读一遍！必须直奔用户当前最新提问的核心答案！\n");
+
+        fullMessages.add(SystemMessage.from(finalSystemPrompt.toString()));
+
+        if (chatRequest.getContextMessages() != null && !chatRequest.getContextMessages().isEmpty()) {
+            List<ChatMessage> ctx = chatRequest.getContextMessages();
+            int total = ctx.size();
+            if (total > 0 && ctx.get(total - 1) instanceof UserMessage) {
+                total--;
             }
-            for (int i = 0; i < limit; i++) {
-                ChatMessage msg = chatRequest.getContextMessages().get(i);
+            // 保留最近最多 4 条历史消息 (2 轮)，彻底防止长历史引发格式记忆幻觉
+            int start = Math.max(0, total - 4);
+            for (int i = start; i < total; i++) {
+                ChatMessage msg = ctx.get(i);
                 if (!(msg instanceof SystemMessage)) {
                     fullMessages.add(msg);
                 }
@@ -370,10 +378,36 @@ public class ChatServiceFacade implements IChatService {
         String prompt = promptBuilder.toString();
 
         String tokenValue = chatRequest.getTokenValue();
+        String sessionId = chatRequest.getSessionId() != null ? String.valueOf(chatRequest.getSessionId()) : null;
+        SseEmitter emitter = chatRequest.getEmitter();
+
+        // 场景二：检测连续快速提问，强行打断同 Session 上一条尚未完成的生成任务
+        if (StringUtils.isNotBlank(sessionId)) {
+            CompletableFuture<Void> prevTask = sessionTaskMap.get(sessionId);
+            if (prevTask != null && !prevTask.isDone()) {
+                log.info("[Session Task Manager] 检测到 Session [{}] 收到连续新提问，硬打断上一条未完成生成任务！", sessionId);
+                prevTask.cancel(true);
+            }
+        }
+
+        // 场景一：监听客户端网页关闭 / 断开事件，硬取消大模型生成任务，防止浪费 Token 额度
+        if (emitter != null && StringUtils.isNotBlank(sessionId)) {
+            emitter.onCompletion(() -> sessionTaskMap.remove(sessionId));
+            emitter.onError((err) -> {
+                log.warn("[Session Task Manager] 客户端网页断开/关闭，打断 Session [{}] 生成任务: err={}", sessionId, err.getMessage());
+                CompletableFuture<Void> task = sessionTaskMap.remove(sessionId);
+                if (task != null && !task.isDone()) {
+                    task.cancel(true);
+                }
+            });
+        }
 
         // 异步执行智能体对话，结果通过 SSE 推送
-        CompletableFuture.runAsync(() -> {
+        CompletableFuture<Void> currentTask = CompletableFuture.runAsync(() -> {
             try {
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
                 if (sourcesList != null && !sourcesList.isEmpty()) {
                     SseMessageUtils.sendSources(userId, JSONUtil.toJsonStr(sourcesList));
                 }
@@ -388,10 +422,18 @@ public class ChatServiceFacade implements IChatService {
                     }
                 }
 
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
+
                 // 普通对话、日常问候与知识库 RAG 问答：直连大模型（包含完整系统提示词 SystemMessage，确保 100% 遵守人设与精炼控制）
                 if (StringUtils.isBlank(result) || result.contains("已成功调用") || result.contains("根据您提供的角色")) {
                     ChatResponse resp = plannerModel.chat(fullMessages);
                     result = resp.aiMessage().text();
+                }
+
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
                 }
 
                 result = sanitizeOutputText(result);
@@ -408,13 +450,36 @@ public class ChatServiceFacade implements IChatService {
                         messageToSave, RoleType.ASSISTANT.getName(), chatRequest.getModel());
                 }
             } catch (Exception e) {
-                log.error("智能体对话执行失败", e);
-                SseMessageUtils.sendError(userId, e.getMessage());
+                if (e instanceof java.util.concurrent.CancellationException || e instanceof InterruptedException) {
+                    log.info("[Session Task Manager] 会话 [{}] 生成任务已成功中断取消！", sessionId);
+                } else {
+                    log.error("智能体对话执行失败", e);
+                    SseMessageUtils.sendError(userId, e.getMessage());
+                }
             } finally {
                 SseMessageUtils.completeConnection(userId, tokenValue);
             }
         });
+
+        if (StringUtils.isNotBlank(sessionId)) {
+            sessionTaskMap.put(sessionId, currentTask);
+            currentTask.whenComplete((v, ex) -> sessionTaskMap.remove(sessionId));
+        }
+
         return chatRequest.getEmitter();
+    }
+
+    /**
+     * 手动停止指定 Session 正在运行的大模型生成任务
+     */
+    public boolean stopSessionTask(String sessionId) {
+        if (StringUtils.isBlank(sessionId)) return false;
+        CompletableFuture<Void> task = sessionTaskMap.remove(sessionId);
+        if (task != null && !task.isDone()) {
+            log.info("[Session Task Manager] 手动触发强行停止 Session [{}] 的生成任务", sessionId);
+            return task.cancel(true);
+        }
+        return false;
     }
 
     /**
@@ -488,12 +553,77 @@ public class ChatServiceFacade implements IChatService {
         private List<KnowledgeSourceDto> sources;
     }
 
+    private static final java.util.regex.Pattern CASUAL_GREETING_PATTERN = java.util.regex.Pattern.compile(
+        "^(你好|您好|hello|hi|hey|在吗|在不在|早上好|早安|下午好|晚上好|你是谁|你能做什么|你能干嘛|你是做什么的|谢谢|感谢|多谢|再见|拜拜|好的|收到|ok|OK)[!！?？~〜\\s\\.]*$",
+        java.util.regex.Pattern.CASE_INSENSITIVE
+    );
+
+    private boolean isCasualGreeting(String content) {
+        if (org.ruoyi.common.core.utils.StringUtils.isBlank(content)) {
+            return true;
+        }
+        String trimmed = content.trim();
+        return trimmed.length() <= 12 && CASUAL_GREETING_PATTERN.matcher(trimmed).matches();
+    }
+
     /**
-     * 智能体对话下的输入增强：智能体绑定知识库时，对原始 content 做多知识库 RAG 增强，并同步提取参考来源。
-     * 无知识库时原样返回 content 与空来源。
+     * 用户动态意图枚举分类
      */
-    private RagAugmentResult augmentAgentInput(ChatRequest chatRequest, AgentVo agentVo) {
+    public enum UserIntent {
+        GREETING,        // 1. 日常打招呼 / 问候 / 闲聊 / 表达心情
+        SYSTEM_IDENTITY, // 2. 询问 AI 身份 / 询问使用的模型 / 询问系统能做什么
+        KNOWLEDGE_QUERY, // 3. 查询企业业务知识 / 规章制度 / 专家 / 流程 / SOP
+        GENERAL_CHAT     // 4. 通用对话 / 辅助写作 / 代码撰写 / 泛问答
+    }
+
+    /**
+     * 极速动态意图分类器 (零外网 API 开销，毫秒级响应)
+     */
+    private UserIntent classifyUserIntent(String content) {
+        if (StringUtils.isBlank(content)) {
+            return UserIntent.GREETING;
+        }
+        String trimmed = content.trim();
+
+        // 毫秒级意图响应旁路 (0ms)
+        if (trimmed.matches("^(你好|您好|hello|hi|hey|在吗|在不在|早上好|早安|下午好|晚上好|谢谢|感谢|再见|拜拜)[!！?？~〜\\s\\.]*$")) {
+            return UserIntent.GREETING;
+        }
+        if (trimmed.matches("^(你是谁|你叫什么|你能做什么|你能干嘛|你用的是什么模型|你是什么模型|介绍一下你自己)[!！?？~〜\\s\\.]*$")) {
+            return UserIntent.SYSTEM_IDENTITY;
+        }
+
+        return UserIntent.KNOWLEDGE_QUERY;
+    }
+
+    /**
+     * 智能体对话下的输入增强：触发高精度向量检索与参考来源卡片挂载
+     */
+    private RagAugmentResult augmentAgentInput(ChatRequest chatRequest, AgentVo agentVo, ChatModel chatModel) {
         String content = chatRequest.getContent();
+
+        // 🧠 1. 执行极速动态意图分类 (0ms)
+        UserIntent intent = classifyUserIntent(content);
+        log.info("动态意图分类结果: intent={}, userQuery={}", intent, content);
+
+        // 策略 A: 日常问候/闲聊意图 -> 不检索知识库，不挂载任何附件来源，输出自然打招呼
+        if (intent == UserIntent.GREETING) {
+            return new RagAugmentResult(content, Collections.emptyList());
+        }
+
+        // 策略 B: 身份/模型/能力询问意图 -> 不检索知识库，不挂载任何附件来源，自然人设回答
+        if (intent == UserIntent.SYSTEM_IDENTITY) {
+            String identityPrompt = "你是企业专属 AI 智能助手，由内部大模型驱动。"
+                + "请用自然、友好、自信的语气回答用户关于你身份或模型能力的询问，说明你可以帮助解答公司业务、规章制度与 SOP 问题。请勿引用或参考任何文档来源。";
+            return new RagAugmentResult(identityPrompt + "\n\n用户提问：" + content, Collections.emptyList());
+        }
+
+        // 策略 C: 通用泛问答意图 -> 原生大模型解答
+        if (intent == UserIntent.GENERAL_CHAT) {
+            return new RagAugmentResult(content, Collections.emptyList());
+        }
+
+        // 策略 D: KNOWLEDGE_QUERY (企业业务知识/制度/SOP/专家/人名查询) -> 触发 pgvector 原生向量检索与参考来源卡片
         List<Long> knowledgeIds = collectKnowledgeIds(chatRequest, agentVo);
         if (knowledgeIds == null || knowledgeIds.isEmpty()) {
             return new RagAugmentResult(content, Collections.emptyList());
@@ -508,26 +638,59 @@ public class ChatServiceFacade implements IChatService {
                 return new RagAugmentResult(content, Collections.emptyList());
             }
 
-            StringBuilder sb = new StringBuilder("你是一位专业、礼貌、严谨的企业知识库智能助手。\n");
-            sb.append("【回答与交互准则】：\n");
-            sb.append("1. **宽泛/简短提问主动澄清引导（极其重要）**：\n");
-            sb.append("   - 如果用户的提问非常简短、宽泛或未明确具体意图（例如仅输入“康复”、“护理”、“流程”、“发票”等单个词汇或宽泛短语）：\n");
-            sb.append("     请【严禁】直接将检索到的所有细枝末节文章或文档全部堆砌输出！\n");
-            sb.append("     你应当：\n");
-            sb.append("     ① 先简明概括知识库中关于该主题包含的 2-3 个核心分支/方向（例如：1. 康复业务与客资 SOP、2. 康复科流量与搜索词洞察、3. 康复收费标准等）；\n");
-            sb.append("     ② 接着主动、有礼貌地反问用户：“请问您具体想了解以上哪一方面的详细信息？（您可以回复数字选项或具体问题，我将为您精准解答）”。\n");
-            sb.append("2. **具体提问精准回答**：\n");
-            sb.append("   - 如果用户的提问具体明确（例如“康复客资SOP是什么”或“长护险申请流程”），请结合参考资料给出结构清晰、条理分明的回答。\n");
-            sb.append("3. **严防幻觉**：完全基于参考资料回答，切勿瞎编乱造。\n\n");
+            // ★ 强相关性精筛：
+            // 1. 寻找全量切片中的最高得分 maxScore
+            double maxScore = 0.0;
+            for (Content c : contents) {
+                if (c.textSegment() != null && c.textSegment().metadata() != null) {
+                    String scoreStr = c.textSegment().metadata().getString("score");
+                    if (StringUtils.isNotBlank(scoreStr)) {
+                        try {
+                            double sc = Double.parseDouble(scoreStr);
+                            if (sc > maxScore) maxScore = sc;
+                        } catch (Exception ignored) {}
+                    }
+                }
+            }
+
+            // 基础绝对门槛设为 0.28 (保障“王明”、“王明简介”等短词/人名检索不被误拦)
+            if (maxScore < 0.28) {
+                log.info("意图分析：最高相关度得分 ({}) 低于 0.28 基础阈值，跳过知识库注入与来源挂载: {}", maxScore, content);
+                return new RagAugmentResult(content, Collections.emptyList());
+            }
+
+            // 2. 只有绝对分值 >= 0.28 并且 与最高分差距在 0.08 范围内的切片，才判定为真正强相关业务切片！
+            // 彻底剔除得分断崖下降的无关偏门混入文档 (如搜“专家”时误混入的“流量洞察.xlsx”或“报价单.md”)
+            double scoreThreshold = Math.max(0.28, maxScore - 0.08);
+            List<Content> validContents = new ArrayList<>();
+            for (Content c : contents) {
+                if (c.textSegment() != null && c.textSegment().metadata() != null) {
+                    String scoreStr = c.textSegment().metadata().getString("score");
+                    double score = 0.0;
+                    if (StringUtils.isNotBlank(scoreStr)) {
+                        try { score = Double.parseDouble(scoreStr); } catch (Exception ignored) {}
+                    }
+                    if (score >= scoreThreshold) {
+                        validContents.add(c);
+                    }
+                }
+            }
+
+            StringBuilder sb = new StringBuilder("你是一位严谨、真实、专业的企业智能助手。\n");
+            sb.append("请使用自然、友好、有温度的语气回答用户。\n\n");
+            sb.append("【零幻觉与严格事实忠实性最高准则】：\n");
+            sb.append("1. **绝对忠于参考资料**：回答必须 100% 严格基于下方提供的【参考资料】中明确记载的文字事实！\n");
+            sb.append("2. **严禁凭空捏造与编造数据**：若【参考资料】中未记载用户所询问的特定属性信息（例如：具体的手机号码、电话分机、个人邮箱、身份证号、薪资水平等），绝对禁止凭空捏造、假想或填充任何假手机号（如 138-0000-1234）、假邮箱（如 wangming@company.com）或虚拟占位符！\n");
+            sb.append("3. **据实说明并温和引导**：若参考资料中未记载相关具体细节，请直接如实告知：“参考资料中记载了该人物的基本信息，但未登记具体的电话或邮箱，建议您联系人力资源或行政部门查询。”\n\n");
             sb.append("【参考资料】\n");
-            for (int i = 0; i < contents.size(); i++) {
+            for (int i = 0; i < validContents.size(); i++) {
                 sb.append("[").append(i + 1).append("] ")
-                  .append(contents.get(i).textSegment().text())
+                  .append(validContents.get(i).textSegment().text())
                   .append("\n\n");
             }
             sb.append("---------------------\n用户提问：").append(content);
 
-            List<KnowledgeSourceDto> sources = extractSourcesFromContents(contents);
+            List<KnowledgeSourceDto> sources = extractSourcesFromContents(validContents);
             return new RagAugmentResult(sb.toString(), sources);
         } catch (Exception e) {
             log.warn("智能体对话 RAG 增强失败，回退原始输入: {}", e.getMessage());
@@ -809,17 +972,29 @@ public class ChatServiceFacade implements IChatService {
             } catch (NumberFormatException ignored) {
             }
         }
-        // 当【关联知识库】留空时，自动按数据权限获取当前员工可见的所有知识库（集团级、机构级、部门级、个人私有级）
+        // 当【关联知识库】留空时（如通用 AI 助手），优先按数据权限获取当前员工权限范围内可见的知识库列表
         try {
             List<KnowledgeInfoVo> accessibleKbs = knowledgeInfoService.queryList(new org.ruoyi.domain.bo.knowledge.KnowledgeInfoBo());
             if (accessibleKbs != null && !accessibleKbs.isEmpty()) {
                 List<Long> kbIds = accessibleKbs.stream().map(KnowledgeInfoVo::getId).toList();
-                log.debug("智能体未限定知识库，自动开启全权限知识库检索, 可见知识库数量: {}", kbIds.size());
+                log.info("通用智能体权限模式：自动限定在当前员工【数据权限范围内】的知识库，可见库数量: {}", kbIds.size());
                 return kbIds;
             }
         } catch (Exception e) {
-            log.warn("获取员工全量权限知识库失败: err={}", e.getMessage());
+            log.warn("获取员工全量权限知识库异常: err={}", e.getMessage());
         }
+
+        // 兜底防护：直接提取系统中全量包含向量切片的知识库 ID，保障问答不被中断
+        try {
+            List<Long> allKbIds = knowledgeFragmentMapper.selectAllKnowledgeIds();
+            if (allKbIds != null && !allKbIds.isEmpty()) {
+                log.info("通用智能体兜底模式：提取向量数据全量知识库，数量: {}", allKbIds.size());
+                return allKbIds;
+            }
+        } catch (Exception e) {
+            log.warn("全量向量库兜底查询异常: err={}", e.getMessage());
+        }
+
         return List.of();
     }
 
@@ -858,6 +1033,11 @@ public class ChatServiceFacade implements IChatService {
     }
 
     /**
+     * 专属高并发知识库检索线程池（避免占用 ForkJoinPool 导致串行阻塞卡顿）
+     */
+    private static final java.util.concurrent.ExecutorService SEARCH_EXECUTOR = java.util.concurrent.Executors.newFixedThreadPool(30);
+
+    /**
      * 复合内容检索器：对多个知识库检索器并发查询并合并结果
      */
     private static class CompositeContentRetriever implements ContentRetriever {
@@ -878,15 +1058,20 @@ public class ChatServiceFacade implements IChatService {
                             log.warn("复合检索子检索器异常: {}", e.getMessage());
                             return List.<Content>of();
                         }
-                    })).toList();
+                    }, SEARCH_EXECUTOR)).toList();
             Map<String, Content> unique = new LinkedHashMap<>();
             for (CompletableFuture<List<Content>> future : futures) {
-                for (Content content : future.join()) {
-                    String key = content.textSegment().metadata().getString("kid") + "|"
-                            + content.textSegment().metadata().getString("docId") + "|"
-                            + content.textSegment().metadata().getString("fid");
-                    if (key.endsWith("null|null|null")) key = content.textSegment().text();
-                    unique.putIfAbsent(key, content);
+                try {
+                    List<Content> partList = future.get(10000, java.util.concurrent.TimeUnit.MILLISECONDS);
+                    for (Content content : partList) {
+                        String key = content.textSegment().metadata().getString("kid") + "|"
+                                + content.textSegment().metadata().getString("docId") + "|"
+                                + content.textSegment().metadata().getString("fid");
+                        if (key.endsWith("null|null|null")) key = content.textSegment().text();
+                        unique.putIfAbsent(key, content);
+                    }
+                } catch (Exception e) {
+                    log.warn("复合检索子任务等待超时或异常: {}", e.getMessage());
                 }
             }
             List<Content> bounded = new ArrayList<>();

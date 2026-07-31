@@ -37,6 +37,19 @@ public class ChatMessageController extends BaseController {
 
     private final IChatMessageService chatMessageService;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.ruoyi.service.chat.impl.ChatServiceFacade chatServiceFacade;
+
+    /**
+     * 手动终止指定 Session 的大模型生成任务
+     */
+    @SaCheckLogin
+    @PostMapping("/stop/{sessionId}")
+    public R<Boolean> stopSessionTask(@PathVariable("sessionId") String sessionId) {
+        boolean stopped = chatServiceFacade.stopSessionTask(sessionId);
+        return R.ok(stopped);
+    }
+
     /**
      * 查询聊天消息列表
      */
@@ -62,7 +75,7 @@ public class ChatMessageController extends BaseController {
      *
      * @param id 主键
      */
-    @SaCheckPermission("system:message:query")
+    @SaCheckLogin
     @GetMapping("/{id}")
     public R<ChatMessageVo> getInfo(@NotNull(message = "主键不能为空")
                                      @PathVariable Long id) {
@@ -72,7 +85,7 @@ public class ChatMessageController extends BaseController {
     /**
      * 新增聊天消息
      */
-    @SaCheckPermission("system:message:add")
+    @SaCheckLogin
     @Log(title = "聊天消息", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping()
@@ -83,7 +96,7 @@ public class ChatMessageController extends BaseController {
     /**
      * 修改聊天消息
      */
-    @SaCheckPermission("system:message:edit")
+    @SaCheckLogin
     @Log(title = "聊天消息", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
     @PutMapping()
@@ -96,7 +109,7 @@ public class ChatMessageController extends BaseController {
      *
      * @param ids 主键串
      */
-    @SaCheckPermission("system:message:remove")
+    @SaCheckLogin
     @Log(title = "聊天消息", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ids}")
     public R<Void> remove(@NotEmpty(message = "主键不能为空")

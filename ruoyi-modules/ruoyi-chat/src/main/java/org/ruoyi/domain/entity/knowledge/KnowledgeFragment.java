@@ -15,7 +15,7 @@ import java.io.Serial;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("knowledge_fragment")
+@TableName(value = "knowledge_fragment", autoResultMap = true)
 public class KnowledgeFragment extends BaseEntity {
 
     @Serial
@@ -24,7 +24,7 @@ public class KnowledgeFragment extends BaseEntity {
     /**
      * 主键
      */
-    @TableId(value = "id")
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -57,5 +57,17 @@ public class KnowledgeFragment extends BaseEntity {
      */
     private Long knowledgeId;
 
+    /**
+     * 向量持久化数据 (Float 数组，兼容旧列)
+     */
+    @TableField(value = "embedding_vector", typeHandler = org.ruoyi.handler.PgFloatArrayTypeHandler.class)
+    private Float[] embeddingVector;
+
+    /**
+     * pgvector 原生 vector 类型列（用于 <=> 余弦距离运算符高效检索）
+     * 存储时通过 UPDATE SQL 同步写入，MyBatis-Plus 不直接管理此字段
+     */
+    @TableField(exist = false)
+    private String embeddingVecStr;
 
 }

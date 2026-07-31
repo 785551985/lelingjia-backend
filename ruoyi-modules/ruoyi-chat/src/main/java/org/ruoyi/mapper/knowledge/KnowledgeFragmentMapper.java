@@ -33,6 +33,7 @@ public interface KnowledgeFragmentMapper extends BaseMapperPlus<KnowledgeFragmen
             "GROUP BY doc_id" +
             "</script>")
     List<DocFragmentCountVo> selectFragmentCountByDocIds(@Param("docIds") List<String> docIds);
+
     @Select("<script>" +
             "SELECT id, fid, doc_id AS docId, content, idx, knowledge_id AS knowledgeId " +
             "FROM knowledge_fragment " +
@@ -45,6 +46,28 @@ public interface KnowledgeFragmentMapper extends BaseMapperPlus<KnowledgeFragmen
             "LIMIT #{limit}" +
             "</script>")
     List<KnowledgeFragmentVo> searchByKeywords(@Param("knowledgeId") Long knowledgeId, @Param("keywords") List<String> keywords, @Param("limit") Integer limit);
+
+    /**
+     * 使用 pgvector 原生 <=> 余弦距离操作符进行向量相似度检索
+     * 直接在数据库侧计算，性能远超 Java 内存遍历方式（全量拉取200条 → 纯SQL 2ms）
+     *
+     * @param knowledgeId 知识库 ID
+     * @param queryVector 查询向量的字符串（PostgreSQL vector 格式：[0.1,0.2,...]）
+     * @param limit       最多返回条数
+     * @return 按余弦相似度从高到低排序的切片列表
+     */
+    @Select("SELECT id, fid, doc_id AS docId, content, idx, knowledge_id AS knowledgeId, " +
+            "       ROUND(CAST(1 - (embedding_vec <=> #{queryVector}::vector) AS NUMERIC), 6) AS score " +
+            "FROM knowledge_fragment " +
+            "WHERE (#{knowledgeId} IS NULL OR knowledge_id = #{knowledgeId}) AND embedding_vec IS NOT NULL " +
+            "ORDER BY embedding_vec <=> #{queryVector}::vector " +
+            "LIMIT #{limit}")
+    List<KnowledgeFragmentVo> searchByVector(@Param("knowledgeId") Long knowledgeId,
+                                              @Param("queryVector") String queryVector,
+                                              @Param("limit") Integer limit);
+
+    @Select("SELECT DISTINCT knowledge_id FROM knowledge_fragment WHERE knowledge_id IS NOT NULL")
+    List<Long> selectAllKnowledgeIds();
 
     default List<KnowledgeFragmentVo> searchByKeyword(Long knowledgeId, String query, Integer limit) {
         if (query == null || query.trim().isEmpty()) {

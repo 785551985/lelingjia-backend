@@ -23,7 +23,7 @@ public class KnowledgeSearchServiceImpl {
 
     private static final Logger log = LoggerFactory.getLogger(KnowledgeSearchServiceImpl.class);
     private static final String REDIS_FAQ_CACHE_PREFIX = "kb:faq:cache:";
-    private static final double RERANK_SCORE_THRESHOLD = 0.35; 
+    private static final double RERANK_SCORE_THRESHOLD = 0.20; 
 
     @Autowired
     private ModelFactory modelFactory;

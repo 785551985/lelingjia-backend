@@ -65,6 +65,7 @@ public class CustomVectorRetriever implements ContentRetriever {
                     metadata.put("kid", String.valueOf(knowledgeInfoVo.getId()));
                     metadata.put("docId", Objects.toString(vo.getDocId(), ""));
                     metadata.put("fid", Objects.toString(vo.getId(), ""));
+                    metadata.put("score", Objects.toString(vo.getScore(), "0.0"));
                     return Content.from(TextSegment.from(vo.getContent(), metadata));
                 })
                 .collect(Collectors.toList());

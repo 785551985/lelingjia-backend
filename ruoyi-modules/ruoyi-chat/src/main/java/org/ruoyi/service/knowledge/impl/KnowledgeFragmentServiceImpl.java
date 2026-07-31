@@ -86,9 +86,10 @@ public class KnowledgeFragmentServiceImpl implements IKnowledgeFragmentService {
     private LambdaQueryWrapper<KnowledgeFragment> buildQueryWrapper(KnowledgeFragmentBo bo) {
         LambdaQueryWrapper<KnowledgeFragment> lqw = Wrappers.lambdaQuery();
         lqw.orderByAsc(KnowledgeFragment::getId);
+        lqw.eq(bo.getKnowledgeId() != null, KnowledgeFragment::getKnowledgeId, bo.getKnowledgeId());
         lqw.eq(bo.getDocId() != null, KnowledgeFragment::getDocId, bo.getDocId());
         lqw.eq(bo.getIdx() != null, KnowledgeFragment::getIdx, bo.getIdx());
-        lqw.eq(StringUtils.isNotBlank(bo.getContent()), KnowledgeFragment::getContent, bo.getContent());
+        lqw.like(StringUtils.isNotBlank(bo.getContent()), KnowledgeFragment::getContent, bo.getContent());
         return lqw;
     }
 

@@ -13,12 +13,17 @@ import org.ruoyi.domain.entity.knowledge.KnowledgeFragment;
 import org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo;
 import org.ruoyi.factory.EmbeddingModelFactory;
 import org.ruoyi.mapper.knowledge.KnowledgeFragmentMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * PostgreSQL + pgvector 本地向量存储策略
@@ -31,7 +36,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PgVectorStoreStrategy extends AbstractVectorStoreStrategy {
 
     private final KnowledgeFragmentMapper knowledgeFragmentMapper;
+    /** JVM 内存缓存：同一次服务生命周期内复用，避免重复调用 */
     private final Map<String, float[]> embeddingCache = new ConcurrentHashMap<>();
+    /** Redis 持久化缓存：跨重启复用，TTL 24h */
+    private static final String REDIS_EMB_PREFIX = "emb:vec:";
+    private static final long REDIS_EMB_TTL_HOURS = 24;
+
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
 
     public PgVectorStoreStrategy(VectorStoreProperties vectorStoreProperties,
                                  EmbeddingModelFactory embeddingModelFactory,
@@ -39,6 +51,59 @@ public class PgVectorStoreStrategy extends AbstractVectorStoreStrategy {
                                  KnowledgeFragmentMapper knowledgeFragmentMapper) {
         super(vectorStoreProperties, embeddingModelFactory, chatModelService);
         this.knowledgeFragmentMapper = knowledgeFragmentMapper;
+    }
+
+    /**
+     * 获取查询向量：优先从 JVM 缓存 → Redis 缓存 → 调用智谱AI API
+     * 三层策略确保最大化复用，消除重复网络请求
+     */
+    private float[] getQueryEmbeddingCached(EmbeddingModel embeddingModel, String modelName, String query) {
+        String cacheKey = modelName + "|" + query;
+        // 1. JVM 内存缓存（最快，0ms）
+        float[] cached = embeddingCache.get(cacheKey);
+        if (cached != null) return cached;
+
+        // 2. Redis 持久化缓存（跨重启复用，~1ms）
+        if (redisTemplate != null) {
+            try {
+                String redisKey = REDIS_EMB_PREFIX + Integer.toHexString(cacheKey.hashCode());
+                String stored = redisTemplate.opsForValue().get(redisKey);
+                if (stored != null && !stored.isEmpty()) {
+                    String[] parts = stored.split(",");
+                    float[] vec = new float[parts.length];
+                    for (int i = 0; i < parts.length; i++) vec[i] = Float.parseFloat(parts[i]);
+                    embeddingCache.put(cacheKey, vec); // 同步写入JVM缓存
+                    log.debug("[embedding] Redis 缓存命中: query={}", query);
+                    return vec;
+                }
+            } catch (Exception e) {
+                log.warn("Redis embedding 缓存读取失败（降级到API调用）: {}", e.getMessage());
+            }
+        }
+
+        // 3. 调用智谱AI API（首次或缓存失效时）
+        log.info("[embedding] 调用 API 生成向量: model={}, query={}", modelName, query);
+        Embedding qe = embeddingModel.embed(query).content();
+        if (qe == null || qe.vector() == null) return null;
+        float[] vec = normalize(qe.vector());
+
+        // 写入双层缓存
+        embeddingCache.put(cacheKey, vec);
+        if (redisTemplate != null) {
+            try {
+                String redisKey = REDIS_EMB_PREFIX + Integer.toHexString(cacheKey.hashCode());
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < vec.length; i++) {
+                    if (i > 0) sb.append(',');
+                    sb.append(vec[i]);
+                }
+                redisTemplate.opsForValue().set(redisKey, sb.toString(), REDIS_EMB_TTL_HOURS, TimeUnit.HOURS);
+                log.debug("[embedding] 已写入 Redis 缓存: query={}", query);
+            } catch (Exception e) {
+                log.warn("Redis embedding 缓存写入失败（不影响检索）: {}", e.getMessage());
+            }
+        }
+        return vec;
     }
 
     @Override
@@ -76,58 +141,54 @@ public class PgVectorStoreStrategy extends AbstractVectorStoreStrategy {
 
             java.util.Map<String, KnowledgeRetrievalVo> resultMap = new java.util.LinkedHashMap<>();
 
-            // A. 真实向量 Embedding 语义计算 (用于匹配字面完全不一致但意思相近的文本)
+            // A. ★ pgvector 原生 SQL 向量相似度检索
+            //    直接在数据库侧用 <=> 余弦距离操作符排序，2ms 完成，彻底替代 Java 内存遍历方案
             if (org.ruoyi.common.core.utils.StringUtils.isNotBlank(embeddingModelName)) {
                 try {
                     EmbeddingModel embeddingModel = getEmbeddingModel(embeddingModelName);
                     if (embeddingModel != null) {
-                        Embedding queryEmbedding = embeddingModel.embed(rawQuery).content();
-                        float[] queryVector = normalize(queryEmbedding.vector());
+                        // ★ 三层缓存：JVM内存 → Redis持久化 → 智谱AI API（首次才调用）
+                        float[] queryVector = getQueryEmbeddingCached(embeddingModel, embeddingModelName, rawQuery);
 
-                        LambdaQueryWrapper<KnowledgeFragment> allLqw = Wrappers.lambdaQuery();
-                        allLqw.eq(KnowledgeFragment::getKnowledgeId, kid);
-                        allLqw.last("LIMIT 100");
-                        List<KnowledgeFragment> fragments = knowledgeFragmentMapper.selectList(allLqw);
+                        if (queryVector != null) {
+                            // 将 float[] 转换为 PostgreSQL vector 格式字符串 "[0.1,0.2,...]"
+                            StringBuilder sb = new StringBuilder("[");
+                            for (int i = 0; i < queryVector.length; i++) {
+                                if (i > 0) sb.append(',');
+                                sb.append(queryVector[i]);
+                            }
+                            sb.append("]");
+                            String pgVectorStr = sb.toString();
 
-                        if (fragments != null && !fragments.isEmpty()) {
-                            List<KnowledgeRetrievalVo> vectorMatches = new java.util.ArrayList<>();
-                            for (KnowledgeFragment f : fragments) {
-                                if (org.ruoyi.common.core.utils.StringUtils.isBlank(f.getContent())) continue;
-                                float[] docVector = getOrComputeEmbedding(embeddingModel, embeddingModelName, f.getContent());
-                                if (docVector != null) {
-                                    double similarity = cosineSimilarity(queryVector, docVector);
-                                    if (similarity > 0.15) {
-                                        KnowledgeRetrievalVo vo = mapToVo(f, Math.round(similarity * 1000.0) / 1000.0);
-                                        vectorMatches.add(vo);
+                            // ★ 原生 pgvector SQL：ORDER BY embedding_vec <=> ? LIMIT N
+                            List<org.ruoyi.domain.vo.knowledge.KnowledgeFragmentVo> vectorRows =
+                                    knowledgeFragmentMapper.searchByVector(kid, pgVectorStr, limit * 2);
+
+                            if (vectorRows != null && !vectorRows.isEmpty()) {
+                                int matched = 0;
+                                for (org.ruoyi.domain.vo.knowledge.KnowledgeFragmentVo f : vectorRows) {
+                                    double sim = f.getScore() != null ? f.getScore() : 0.0;
+                                    if (sim >= 0.25 && resultMap.size() < limit) {
+                                        KnowledgeRetrievalVo vo = new KnowledgeRetrievalVo();
+                                        vo.setId(org.ruoyi.common.core.utils.StringUtils.isNotBlank(f.getFid()) ? f.getFid() : String.valueOf(f.getId()));
+                                        vo.setContent(f.getContent());
+                                        vo.setDocId(f.getDocId());
+                                        vo.setIdx(f.getIdx());
+                                        vo.setKnowledgeId(f.getKnowledgeId());
+                                        vo.setScore(sim);
+                                        resultMap.putIfAbsent(vo.getId(), vo);
+                                        matched++;
                                     }
                                 }
+                                log.info("PgVectorStoreStrategy pgvector 原生 SQL 向量检索完成，命中高相关切片 {} 条", matched);
                             }
-                            vectorMatches.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
-                            for (KnowledgeRetrievalVo vo : vectorMatches) {
-                                resultMap.put(vo.getId(), vo);
-                            }
-                            log.info("PgVectorStoreStrategy 语义向量搜索成功完成, 命中条数: {}", vectorMatches.size());
                         }
                     }
-                } catch (Exception e) {
-                    log.warn("PgVectorStoreStrategy 向量模型计算未执行或降级: {}", e.getMessage());
+                } catch (Exception vErr) {
+                    log.warn("PgVectorStoreStrategy 向量检索异常: {}", vErr.getMessage());
                 }
             }
 
-            // B. 文本规则三级精准/多词强化补充
-            // 1. 第一优先级：全串忽略大小写匹配 (ILIKE %query%)
-            LambdaQueryWrapper<KnowledgeFragment> exactLqw = Wrappers.lambdaQuery();
-            exactLqw.eq(KnowledgeFragment::getKnowledgeId, kid);
-            exactLqw.apply("content ILIKE {0}", "%" + rawQuery + "%");
-            exactLqw.last("LIMIT " + limit);
-            List<KnowledgeFragment> exactList = knowledgeFragmentMapper.selectList(exactLqw);
-
-            if (exactList != null) {
-                for (KnowledgeFragment f : exactList) {
-                    KnowledgeRetrievalVo vo = mapToVo(f, 0.95);
-                    resultMap.putIfAbsent(vo.getId(), vo);
-                }
-            }
 
             // 2. 第二优先级：拆词多词相与 (AND ILIKE) 检索
             if (resultMap.size() < limit) {

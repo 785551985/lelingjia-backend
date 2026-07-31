@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.*;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import org.ruoyi.domain.bo.knowledge.KnowledgeFragmentBo;
 import org.ruoyi.domain.vo.knowledge.KnowledgeFragmentVo;
 import org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo;
@@ -40,7 +41,7 @@ public class KnowledgeFragmentController extends BaseController {
     /**
      * 查询知识片段列表
      */
-    @SaCheckPermission("system:fragment:list")
+    @SaCheckPermission(value = {"system:fragment:list", "system:info:list", "system:info:query"}, mode = SaMode.OR)
     @GetMapping("/list")
     public TableDataInfo<KnowledgeFragmentVo> list(KnowledgeFragmentBo bo, PageQuery pageQuery) {
         return knowledgeFragmentService.queryPageList(bo, pageQuery);
@@ -49,7 +50,7 @@ public class KnowledgeFragmentController extends BaseController {
     /**
      * 导出知识片段列表
      */
-    @SaCheckPermission("system:fragment:export")
+    @SaCheckPermission(value = {"system:fragment:export", "system:info:export"}, mode = SaMode.OR)
     @Log(title = "知识片段", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(KnowledgeFragmentBo bo, HttpServletResponse response) {
@@ -62,7 +63,7 @@ public class KnowledgeFragmentController extends BaseController {
      *
      * @param id 主键
      */
-    @SaCheckPermission("system:fragment:query")
+    @SaCheckPermission(value = {"system:fragment:query", "system:info:query", "system:info:list", "system:info:edit"}, mode = SaMode.OR)
     @GetMapping("/{id}")
     public R<KnowledgeFragmentVo> getInfo(@NotNull(message = "主键不能为空")
                                      @PathVariable Long id) {
@@ -72,7 +73,7 @@ public class KnowledgeFragmentController extends BaseController {
     /**
      * 新增知识片段
      */
-    @SaCheckPermission("system:fragment:add")
+    @SaCheckPermission(value = {"system:fragment:add", "system:info:add"}, mode = SaMode.OR)
     @Log(title = "知识片段", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping()
@@ -83,7 +84,7 @@ public class KnowledgeFragmentController extends BaseController {
     /**
      * 修改知识片段
      */
-    @SaCheckPermission("system:fragment:edit")
+    @SaCheckPermission(value = {"system:fragment:edit", "system:info:edit"}, mode = SaMode.OR)
     @Log(title = "知识片段", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
     @PutMapping()
@@ -96,7 +97,7 @@ public class KnowledgeFragmentController extends BaseController {
      *
      * @param ids 主键串
      */
-    @SaCheckPermission("system:fragment:remove")
+    @SaCheckPermission(value = {"system:fragment:remove", "system:info:remove"}, mode = SaMode.OR)
     @Log(title = "知识片段", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ids}")
     public R<Void> remove(@NotEmpty(message = "主键不能为空")
@@ -107,7 +108,7 @@ public class KnowledgeFragmentController extends BaseController {
     /**
      * 检索测试
      */
-    @SaCheckPermission("system:fragment:list")
+    @SaCheckPermission(value = {"system:fragment:list", "system:info:list", "system:info:query"}, mode = SaMode.OR)
     @PostMapping("/retrieval")
     @RepeatSubmit()
     public R<List<KnowledgeRetrievalVo>> retrieval(@RequestBody KnowledgeFragmentBo bo) {
