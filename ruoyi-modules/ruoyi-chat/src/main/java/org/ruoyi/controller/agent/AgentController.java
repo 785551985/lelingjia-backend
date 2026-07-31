@@ -120,6 +120,23 @@ public class AgentController extends BaseController {
         return R.ok(agentService.queryEnabledOptions());
     }
 
+    @Autowired
+    private org.ruoyi.mapper.agent.SysAgentTemplateMapper sysAgentTemplateMapper;
+
+    /**
+     * 查询平台统一预设智能体模板列表
+     */
+    @SaCheckLogin
+    @GetMapping("/template/list")
+    public R<List<org.ruoyi.domain.entity.agent.SysAgentTemplate>> templateList() {
+        List<org.ruoyi.domain.entity.agent.SysAgentTemplate> list = sysAgentTemplateMapper.selectList(
+            com.baomidou.mybatisplus.core.toolkit.Wrappers.<org.ruoyi.domain.entity.agent.SysAgentTemplate>lambdaQuery()
+                .eq(org.ruoyi.domain.entity.agent.SysAgentTemplate::getStatus, "0")
+                .orderByAsc(org.ruoyi.domain.entity.agent.SysAgentTemplate::getSortOrder)
+        );
+        return R.ok(list);
+    }
+
     /**
      * 列出磁盘上可用的 Skills（供管理端表单勾选）
      */
@@ -128,5 +145,4 @@ public class AgentController extends BaseController {
     public R<List<SkillOptionVo>> skillOptions() {
         return R.ok(agentService.listSkillOptions());
     }
-
 }
