@@ -1,4 +1,4 @@
--- 平台统一模版集中管理中心 菜单与权限 SQL (升级兼容路由组件路径)
+-- 平台统一模版集中管理中心 菜单与权限 SQL (统一为“知识库模板管理”)
 BEGIN;
 
 -- 1. 插入【平台模版中心】主目录菜单 (ID: 2090)
@@ -6,9 +6,9 @@ INSERT INTO sys_menu (menu_id, menu_name, parent_id, order_num, path, component,
 VALUES (2090, '平台模版中心', 0, 9, 'template', NULL, 1, 0, 'M', '0', '0', '', 'ant-design:appstore-outlined', 103, 1, NOW(), '平台统一模版集中管理目录')
 ON CONFLICT (menu_id) DO UPDATE SET menu_name = EXCLUDED.menu_name;
 
--- 2. 插入【知识库范本管理】子菜单 (ID: 2091)
+-- 2. 插入【知识库模板管理】子菜单 (ID: 2091)
 INSERT INTO sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_dept, create_by, create_time, remark)
-VALUES (2091, '知识库范本管理', 2090, 1, 'knowledge', 'system/template/knowledge/index', 1, 0, 'C', '0', '0', 'system:knowledgeTemplate:list', 'ant-design:file-text-outlined', 103, 1, NOW(), '知识库预设范本集中管理菜单')
+VALUES (2091, '知识库模板管理', 2090, 1, 'knowledge', 'system/template/knowledge/index', 1, 0, 'C', '0', '0', 'system:knowledgeTemplate:list', 'ant-design:file-text-outlined', 103, 1, NOW(), '知识库预设模板集中管理菜单')
 ON CONFLICT (menu_id) DO UPDATE SET menu_name = EXCLUDED.menu_name, path = EXCLUDED.path, component = EXCLUDED.component;
 
 -- 3. 插入【智能体模板管理】子菜单 (ID: 2092)
