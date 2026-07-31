@@ -67,6 +67,6 @@ jobs:
               --spring.datasource.dynamic.datasource.master.url="jdbc:postgresql://127.0.0.1:5372/dazhao_kb?currentSchema=public&stringtype=unspecified" \
               --spring.datasource.dynamic.datasource.master.driverClassName="org.postgresql.Driver" \
               --spring.datasource.dynamic.datasource.master.username="dazhao_kb" \
-              --spring.datasource.dynamic.datasource.password="dz123456" \
+              --spring.datasource.dynamic.datasource.master.password="dz123456" \
               > /www/wwwroot/backend/ruoyi.log 2>&1 &
             echo "✅ 后端 SQL 增量同步与 Java 服务平滑重启完成！"
