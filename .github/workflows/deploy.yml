@@ -43,20 +43,17 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
-            # 1. 自动扫描并执行数据库增量 SQL 脚本（兼容所有常见 SQL 目录）
-            for update_dir in \
-                "/www/wwwroot/dazhao_kb_src/lelingjia-backend/sql/update" \
-                "/www/wwwroot/dazhao_kb_src/lelingjia-backend/script/sql" \
-                "/www/wwwroot/dazhao_kb_src/lelingjia-backend/docs/script/sql/update"; do
-                if [ -d "$update_dir" ]; then
-                    for sql_file in $(ls ${update_dir}/*.sql 2>/dev/null | sort); do
-                        if [ -f "$sql_file" ]; then
-                            echo "   执行增量 SQL: $(basename $sql_file)..."
-                            PGPASSWORD="dz123456" psql -h 127.0.0.1 -p 5372 -U dazhao_kb -d dazhao_kb -f "$sql_file" || true
-                        fi
-                    done
-                fi
-            done
+            # 1. 自动扫描并执行数据库增量 SQL 脚本 (统一规范路径：sql/update)
+            SQL_UPDATE_DIR="/www/wwwroot/dazhao_kb_src/lelingjia-backend/sql/update"
+            if [ -d "$SQL_UPDATE_DIR" ]; then
+                echo "检查数据库 SQL 增量更新..."
+                for sql_file in $(ls ${SQL_UPDATE_DIR}/*.sql 2>/dev/null | sort); do
+                    if [ -f "$sql_file" ]; then
+                        echo "   执行增量 SQL: $(basename $sql_file)..."
+                        PGPASSWORD="dz123456" psql -h 127.0.0.1 -p 5372 -U dazhao_kb -d dazhao_kb -f "$sql_file" || true
+                    fi
+                done
+            fi
 
             # 2. 平滑重启 Java 服务
             PID=$(ps -ef | grep ruoyi-admin.jar | grep -v grep | awk '{print $2}')
