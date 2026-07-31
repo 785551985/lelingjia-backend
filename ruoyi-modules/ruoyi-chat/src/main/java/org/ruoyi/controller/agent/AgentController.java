@@ -16,6 +16,7 @@ import org.ruoyi.common.web.core.BaseController;
 import org.ruoyi.domain.bo.agent.AgentBo;
 import org.ruoyi.domain.vo.agent.AgentVo;
 import org.ruoyi.domain.vo.agent.SkillOptionVo;
+import org.ruoyi.mapper.agent.SysAgentTemplateMapper;
 import org.ruoyi.service.agent.IAgentService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,6 +42,7 @@ import java.util.List;
 public class AgentController extends BaseController {
 
     private final IAgentService agentService;
+    private final SysAgentTemplateMapper sysAgentTemplateMapper;
 
     /**
      * 分页查询智能体列表
@@ -119,9 +121,6 @@ public class AgentController extends BaseController {
     public R<List<AgentVo>> agentOptions() {
         return R.ok(agentService.queryEnabledOptions());
     }
-
-    @Autowired
-    private org.ruoyi.mapper.agent.SysAgentTemplateMapper sysAgentTemplateMapper;
 
     /**
      * 查询平台统一预设智能体模板列表
