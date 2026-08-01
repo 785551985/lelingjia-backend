@@ -255,20 +255,24 @@ public class KnowledgeSearchServiceImpl {
 
     private String buildSystemPrompt(List<ChunkMatch> chunks) {
         StringBuilder sb = new StringBuilder();
-        sb.append("你是一个企业级智能助手。请严格基于以下提供的参考资料回答用户问题。\n\n");
-        sb.append("【关键准则】\n");
-        sb.append("1. **新版优先原则**：若参考资料存在版本差异、数据变化或规定冲突，必须以【生效日期最新】的资料为准！并在回答中予以申明。\n");
-        sb.append("2. **引用溯源**：回答中引用的每一个政策点，需在对应内容后面括注说明引用的文件名及版本号（如：[集团差旅伙食补贴的补充规定.pdf (v2.0)]）。\n");
-        sb.append("3. **严防幻觉**：如果问题在给定的资料中查无实证，直接回答“未在当前知识库中检索到相关公开制度，建议联系相关部门确认”，绝不可瞎编乱造。\n");
-        sb.append("4. **澄清引导**：如若问题缺乏主体或范围过于模糊，应列出 2-3 个可能的分支选项供用户确认。\n\n");
+        sb.append("你是乐龄家企业知识库官方智能助手。请严格遵守以下规则回答：\n\n");
+        sb.append("【核心安全与真实性准则】\n");
+        sb.append("1. **绝对忠实于资料**：必须且仅能依据下方【参考资料】中明确记载的事实进行回答。严禁凭空臆造、推测或捏造任何未在资料中出现的电话号码、邮箱地址、客服热线（如 400 电话）、人名或服务条款！\n");
+        sb.append("2. **无意义/极短输入处理**：若用户输入仅有简单数字（如'1'）、单字、标点或无具体语义，请直接礼貌回复：“您好！请问您需要了解知识库中的哪项业务或制度？您可以提供更具体的问题，我为您精准解答。”，绝对禁止自作主张臆测意图去列举虚假的联系方式、邮箱或业务分类！\n");
+        sb.append("3. **查无实证明确告知**：如果参考资料中未记载回答用户问题所需的内容，请明确说明：“抱歉，在知识库当前资料中未检索到相关内容。”，切勿胡乱补充外部假知识或虚构客服热线。\n");
+        sb.append("4. **版本最新原则**：若参考资料存在冲突，必须以【生效日期最新】的资料为准。\n\n");
         sb.append("【参考资料】\n");
 
-        for (int i = 0; i < chunks.size(); i++) {
-            ChunkMatch chunk = chunks.get(i);
-            sb.append(String.format("[%d] 文件名：%s | 版本号：%s | 生效日期：%s\n", 
-                    i + 1, chunk.getDocName(), chunk.getVersion(), formatDate(chunk.getEffectiveDate())));
-            sb.append("   - 所在页码：第 ").append(chunk.getPageNumber()).append(" 页\n");
-            sb.append("   - 切片内容：").append(chunk.getContent().trim()).append("\n\n");
+        if (chunks == null || chunks.isEmpty()) {
+            sb.append("（当前未匹配到任何相关参考资料）\n\n");
+        } else {
+            for (int i = 0; i < chunks.size(); i++) {
+                ChunkMatch chunk = chunks.get(i);
+                sb.append(String.format("[%d] 文件名：%s | 版本号：%s | 生效日期：%s\n", 
+                        i + 1, chunk.getDocName(), chunk.getVersion(), formatDate(chunk.getEffectiveDate())));
+                sb.append("   - 所在页码：第 ").append(chunk.getPageNumber()).append(" 页\n");
+                sb.append("   - 切片内容：").append(chunk.getContent().trim()).append("\n\n");
+            }
         }
 
         return sb.toString();
