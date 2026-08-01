@@ -695,7 +695,13 @@ public class ChatServiceFacade implements IChatService {
             if (retriever == null) {
                 return new RagAugmentResult(content, Collections.emptyList());
             }
-            List<Content> contents = retriever.retrieve(Query.from(content));
+            List<Content> contents = null;
+            try {
+                contents = retriever.retrieve(Query.from(content));
+            } catch (Exception e) {
+                log.warn("知识库向量检索发生网络或模型异常，自动平滑退化为大模型直连回答: err={}", e.getMessage());
+                return new RagAugmentResult(content, Collections.emptyList());
+            }
             if (contents == null || contents.isEmpty()) {
                 String noFactPrompt = "你是一位严谨的企业知识库智能助手。\n"
                     + "【防幻觉最高防线】：\n"
