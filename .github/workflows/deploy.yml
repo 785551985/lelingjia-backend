@@ -69,7 +69,7 @@ jobs:
                 kill -9 $PID || true
                 sleep 2
             fi
-            nohup java -jar /www/wwwroot/backend/ruoyi-admin.jar \
+            nohup java -Xms512m -Xmx1024m -jar /www/wwwroot/backend/ruoyi-admin.jar \
               --server.port=6039 \
               --spring.profiles.active=prod \
               --spring.datasource.dynamic.datasource.master.url="jdbc:postgresql://127.0.0.1:5372/dazhao_kb?currentSchema=public&stringtype=unspecified" \
