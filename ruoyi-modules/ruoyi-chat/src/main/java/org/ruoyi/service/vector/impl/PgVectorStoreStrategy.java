@@ -166,9 +166,11 @@ public class PgVectorStoreStrategy extends AbstractVectorStoreStrategy {
 
                             if (vectorRows != null && !vectorRows.isEmpty()) {
                                 int matched = 0;
+                                double minThreshold = (queryVectorBo.getSimilarityThreshold() != null && queryVectorBo.getSimilarityThreshold() > 0)
+                                        ? queryVectorBo.getSimilarityThreshold() : 0.0;
                                 for (org.ruoyi.domain.vo.knowledge.KnowledgeFragmentVo f : vectorRows) {
                                     double sim = f.getScore() != null ? f.getScore() : 0.0;
-                                    if (sim >= 0.25 && resultMap.size() < limit) {
+                                    if (sim >= minThreshold && resultMap.size() < limit) {
                                         KnowledgeRetrievalVo vo = new KnowledgeRetrievalVo();
                                         vo.setId(org.ruoyi.common.core.utils.StringUtils.isNotBlank(f.getFid()) ? f.getFid() : String.valueOf(f.getId()));
                                         vo.setContent(f.getContent());

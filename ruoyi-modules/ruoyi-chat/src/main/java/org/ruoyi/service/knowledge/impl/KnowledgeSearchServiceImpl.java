@@ -168,35 +168,70 @@ public class KnowledgeSearchServiceImpl {
     private org.ruoyi.service.retrieval.KnowledgeRetrievalService knowledgeRetrievalService;
 
     private List<ChunkMatch> queryVectorAndDbFilter(SearchRequest request, float[] queryVector) {
-        log.info("执行 PostgreSQL 真实向量与全文混合检索, kbId: {}, query: {}", request.getKbId(), request.getQuery());
+        String actualQuery = request.getQuery();
+        if (request.getHistory() != null && !request.getHistory().isEmpty()) {
+            String lastUserMsg = "";
+            for (Map<String, String> m : request.getHistory()) {
+                if ("user".equals(m.get("role")) && org.ruoyi.common.core.utils.StringUtils.isNotBlank(m.get("content"))) {
+                    lastUserMsg = m.get("content");
+                }
+            }
+            if (org.ruoyi.common.core.utils.StringUtils.isNotBlank(lastUserMsg)) {
+                if (actualQuery.contains("他") || actualQuery.contains("她") || actualQuery.contains("该") || actualQuery.contains("其")) {
+                    actualQuery = lastUserMsg.replaceAll("[？?！!]", "") + " " + actualQuery;
+                    log.info("多轮对话代词指代理解与检索改写成功: '{}'", actualQuery);
+                }
+            }
+        }
 
-        if (request.getKbId() == null) {
+        log.info("执行 PostgreSQL 真实向量与全文混合检索, kbId: {}, query: {}", request.getKbId(), actualQuery);
+
+        List<Long> targetKbIds = new ArrayList<>();
+        if (request.getKbId() != null) {
+            targetKbIds.add(request.getKbId());
+        } else {
+            // 当 kbId 为空（全库智能检索模式）时，自动并发拉取全量可见的知识库列表
+            try {
+                List<org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo> allKbs = knowledgeInfoService.queryList(new org.ruoyi.domain.bo.knowledge.KnowledgeInfoBo());
+                if (allKbs != null) {
+                    for (org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo k : allKbs) {
+                        targetKbIds.add(k.getId());
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("获取全量知识库列表失败: {}", e.getMessage());
+            }
+        }
+
+        if (targetKbIds.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // 优先使用知识库配置的相似度阈值，若未配置则采用 0.50 作为基准标准阈值（防止打招呼短语被 0.20 误召回）
-        double threshold = 0.50;
-        try {
-            org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo kbVo = knowledgeInfoService.queryById(request.getKbId());
-            if (kbVo != null && kbVo.getSimilarityThreshold() != null) {
-                threshold = kbVo.getSimilarityThreshold();
+        List<org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo> retrievalVos = new ArrayList<>();
+        for (Long kid : targetKbIds) {
+            double threshold = 0.0;
+            try {
+                org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo kbVo = knowledgeInfoService.queryById(kid);
+                if (kbVo != null && kbVo.getSimilarityThreshold() != null) {
+                    threshold = kbVo.getSimilarityThreshold();
+                }
+            } catch (Exception ignored) {}
+
+            org.ruoyi.domain.bo.vector.QueryVectorBo queryBo = new org.ruoyi.domain.bo.vector.QueryVectorBo();
+            queryBo.setKid(String.valueOf(kid));
+            queryBo.setQuery(actualQuery);
+            queryBo.setMaxResults(10);
+            queryBo.setSimilarityThreshold(threshold);
+
+            List<org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo> list = knowledgeRetrievalService.retrieve(queryBo);
+            if (list == null || list.isEmpty()) {
+                double dynamicFallbackThreshold = Math.max(0.15, threshold * 0.6);
+                queryBo.setSimilarityThreshold(dynamicFallbackThreshold);
+                list = knowledgeRetrievalService.retrieve(queryBo);
             }
-        } catch (Exception e) {
-            log.warn("获取知识库阈值配置失败，使用默认阈值 0.50: {}", e.getMessage());
-        }
-
-        org.ruoyi.domain.bo.vector.QueryVectorBo queryBo = new org.ruoyi.domain.bo.vector.QueryVectorBo();
-        queryBo.setKid(String.valueOf(request.getKbId()));
-        queryBo.setQuery(request.getQuery());
-        queryBo.setMaxResults(10);
-        queryBo.setSimilarityThreshold(threshold); // 动态使用数据库配置的相似度阈值
-
-        List<org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo> retrievalVos = knowledgeRetrievalService.retrieve(queryBo);
-        if (retrievalVos == null || retrievalVos.isEmpty()) {
-            double dynamicFallbackThreshold = Math.max(0.15, threshold * 0.6);
-            log.warn("按您设置的初始阈值 ({}) 未检索到切片数据, 自动按您配置的比例调整动态门槛 ({}) 再次召回...", threshold, String.format("%.2f", dynamicFallbackThreshold));
-            queryBo.setSimilarityThreshold(dynamicFallbackThreshold);
-            retrievalVos = knowledgeRetrievalService.retrieve(queryBo);
+            if (list != null && !list.isEmpty()) {
+                retrievalVos.addAll(list);
+            }
         }
 
         if (retrievalVos == null || retrievalVos.isEmpty()) {
@@ -255,10 +290,12 @@ public class KnowledgeSearchServiceImpl {
 
     private String buildSystemPrompt(SearchRequest request, List<ChunkMatch> chunks) {
         StringBuilder sb = new StringBuilder();
-        sb.append("你是乐龄家企业知识库官方智能助手。请严格遵守以下规则回答：\n\n");
+        String assistantName = (request != null && org.ruoyi.common.core.utils.StringUtils.isNotBlank(request.getAgentName())) 
+            ? request.getAgentName() : "企业知识库官方智能助手";
+        sb.append("你是").append(assistantName).append("。请严格遵守以下规则回答：\n\n");
         sb.append("【核心安全与真实性准则】\n");
         sb.append("1. **绝对忠实于资料**：必须且仅能依据下方【参考资料】中明确记载的事实进行回答。严禁凭空臆造、推测或捏造任何未在资料中出现的电话号码、邮箱地址、客服热线（如 400 电话）、人名或服务条款！\n");
-        sb.append("2. **业务关键词直接解答**：若用户提到“考勤”、“打卡”、“请假”、“康复”、“报销”等业务词汇，请直接结合【参考资料】详细阐述相关制度规则，切勿反复追问反问用户；仅在用户输入为纯无意义符号、单数字（如'1'）时才提示：“您好！请问您想了解哪方面的制度？您可以提供更具体的问题，我为您解答。”\n");
+        sb.append("2. **业务查询直接解答**：若用户询问相关业务、规章制度、专家档案或流程标准，请直接结合【参考资料】详细阐述相关内容，切勿反复追问反问用户；仅在用户输入为纯无意义符号或单数字时才提示：“您好！请问您想了解哪方面的制度？您可以提供更具体的问题，我为您解答。”\n");
         sb.append("3. **查无实证明确告知**：如果参考资料中未记载回答用户问题所需的内容，请明确说明：“抱歉，在知识库当前资料中未检索到相关内容。”，切勿胡乱补充外部假知识或虚构客服热线。\n");
         sb.append("4. **专注当前问题**：请直接回答用户当前提问，切勿主动汇总或重复罗列历史对话中聊过的无关词汇！\n");
 
@@ -323,13 +360,18 @@ public class KnowledgeSearchServiceImpl {
     // ----------------------------------------------------------------
 
     public static class SearchRequest {
+        private String rawTenantId;
         private Long tenantId;
         private Long deptId;
         private Long kbId;
         private Long sessionId;
+        private String agentName;
         private String agentPrompt;
         private String query;
         private List<Map<String, String>> history;
+
+        public String getRawTenantId() { return rawTenantId; }
+        public void setRawTenantId(String rawTenantId) { this.rawTenantId = rawTenantId; }
 
         public Long getTenantId() { return tenantId; }
         public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
@@ -339,6 +381,8 @@ public class KnowledgeSearchServiceImpl {
         public void setKbId(Long kbId) { this.kbId = kbId; }
         public Long getSessionId() { return sessionId; }
         public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
+        public String getAgentName() { return agentName; }
+        public void setAgentName(String agentName) { this.agentName = agentName; }
         public String getAgentPrompt() { return agentPrompt; }
         public void setAgentPrompt(String agentPrompt) { this.agentPrompt = agentPrompt; }
         public String getQuery() { return query; }

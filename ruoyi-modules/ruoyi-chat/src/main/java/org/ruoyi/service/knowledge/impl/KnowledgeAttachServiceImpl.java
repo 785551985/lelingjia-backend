@@ -175,6 +175,8 @@ public class KnowledgeAttachServiceImpl implements IKnowledgeAttachService {
     @Override
     public Boolean updateByBo(KnowledgeAttachBo bo) {
         KnowledgeAttach update = MapstructUtils.convert(bo, KnowledgeAttach.class);
+        log.info("更新知识库附件记录，ID: {}, approveStatus: {}, status: {}", 
+                update.getId(), update.getApproveStatus(), update.getStatus());
         return baseMapper.updateById(update) > 0;
     }
 

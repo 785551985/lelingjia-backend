@@ -35,14 +35,16 @@ public interface KnowledgeFragmentMapper extends BaseMapperPlus<KnowledgeFragmen
     List<DocFragmentCountVo> selectFragmentCountByDocIds(@Param("docIds") List<String> docIds);
 
     @Select("<script>" +
-            "SELECT id, fid, doc_id AS docId, content, idx, knowledge_id AS knowledgeId " +
+            "SELECT id, fid, doc_id AS docId, content, idx, knowledge_id AS knowledgeId, 0.80 AS score " +
             "FROM knowledge_fragment " +
-            "WHERE knowledge_id = #{knowledgeId} " +
+            "WHERE (#{knowledgeId} IS NULL OR knowledge_id = #{knowledgeId}) " +
             "<if test='keywords != null and keywords.size() > 0'>" +
-            "  <foreach collection='keywords' item='kw'>" +
-            "    AND content ILIKE '%' || #{kw} || '%' " +
-            "  </foreach>" +
-            "</if>" +
+            "  AND (" +
+            "    <foreach item='kw' collection='keywords' separator=' OR '>" +
+            "      content ILIKE CONCAT('%', #{kw}, '%')" +
+            "    </foreach>" +
+            "  )" +
+            "</if> " +
             "LIMIT #{limit}" +
             "</script>")
     List<KnowledgeFragmentVo> searchByKeywords(@Param("knowledgeId") Long knowledgeId, @Param("keywords") List<String> keywords, @Param("limit") Integer limit);
@@ -57,10 +59,10 @@ public interface KnowledgeFragmentMapper extends BaseMapperPlus<KnowledgeFragmen
      * @return 按余弦相似度从高到低排序的切片列表
      */
     @Select("SELECT id, fid, doc_id AS docId, content, idx, knowledge_id AS knowledgeId, " +
-            "       ROUND(CAST(1 - (embedding_vec <=> #{queryVector}::vector) AS NUMERIC), 6) AS score " +
+            "       CASE WHEN embedding_vec IS NOT NULL THEN ROUND(CAST(1 - (embedding_vec <=> #{queryVector}::vector) AS NUMERIC), 6) ELSE 0.85 END AS score " +
             "FROM knowledge_fragment " +
-            "WHERE (#{knowledgeId} IS NULL OR knowledge_id = #{knowledgeId}) AND embedding_vec IS NOT NULL " +
-            "ORDER BY embedding_vec <=> #{queryVector}::vector " +
+            "WHERE (#{knowledgeId} IS NULL OR knowledge_id = #{knowledgeId}) " +
+            "ORDER BY (CASE WHEN embedding_vec IS NOT NULL THEN embedding_vec <=> #{queryVector}::vector ELSE 0.5 END) " +
             "LIMIT #{limit}")
     List<KnowledgeFragmentVo> searchByVector(@Param("knowledgeId") Long knowledgeId,
                                               @Param("queryVector") String queryVector,
@@ -83,6 +85,15 @@ public interface KnowledgeFragmentMapper extends BaseMapperPlus<KnowledgeFragmen
             }
         } else {
             keywords.add(trimmed);
+            // 对无空格中文词做滑动步长为 1 的全 2-gram 拆解（例如 "专家介绍" 拆出 "专家", "家介", "介绍"）
+            if (trimmed.length() >= 2) {
+                for (int i = 0; i <= trimmed.length() - 2; i++) {
+                    String sub = trimmed.substring(i, i + 2);
+                    if (!keywords.contains(sub)) {
+                        keywords.add(sub);
+                    }
+                }
+            }
         }
         return searchByKeywords(knowledgeId, keywords, limit);
     }

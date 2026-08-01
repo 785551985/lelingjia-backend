@@ -98,16 +98,16 @@ public class AliBaiLianRerankModelService implements RerankModelService {
         String jsonBody = objectMapper.writeValueAsString(payload);
         RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
 
-        // 阿里百炼官方 Native 专用重排序 Endpoint
+        // 阿里百炼官方 Native 专用重排序 Endpoint 与 OpenAI 兼容 Endpoint 双重容错
         String apiHost = chatModelVo.getApiHost();
-        if (apiHost == null || apiHost.isBlank() || apiHost.contains("compatible-mode") || apiHost.contains("compatible-api")) {
+        if (apiHost == null || apiHost.isBlank() || apiHost.contains("dashscope")) {
             apiHost = "https://dashscope.aliyuncs.com";
         }
         if (apiHost.endsWith("/")) {
             apiHost = apiHost.substring(0, apiHost.length() - 1);
         }
         
-        String url = apiHost + "/api/v1/services/rerank/text-rerank/text-rerank";
+        String url = apiHost.contains("v1") ? apiHost : (apiHost + "/api/v1/services/rerank/text-rerank/text-rerank");
         Request httpRequest = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + chatModelVo.getApiKey())
@@ -118,6 +118,7 @@ public class AliBaiLianRerankModelService implements RerankModelService {
         try (Response response = okHttpClient.newCall(httpRequest).execute()) {
             if (!response.isSuccessful()) {
                 String err = response.body() != null ? response.body().string() : "无错误信息";
+                log.warn("阿里百炼重排序 API 返回非 200 响应: code={}, err={}", response.code(), err);
                 throw new IllegalArgumentException("阿里百炼API调用失败: " + response.code() + " - " + err);
             }
 

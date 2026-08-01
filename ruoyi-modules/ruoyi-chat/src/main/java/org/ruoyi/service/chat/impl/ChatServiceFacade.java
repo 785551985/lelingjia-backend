@@ -177,17 +177,27 @@ public class ChatServiceFacade implements IChatService {
             }
         }
 
-        // 1. 根据模型名称查询完整配置，若未指定或无法匹配则自动回退到系统可用模型
+        // 1. 绝对最高优先级：优先使用智能体中配置绑定的专属 AI 模型
         ChatModelVo chatModelVo = null;
-        if (StringUtils.isNotBlank(chatRequest.getModel())) {
+        if (agentVo != null && agentVo.getModelId() != null) {
+            chatModelVo = chatModelService.queryById(agentVo.getModelId());
+        }
+        // 次优先：使用请求显式指定的模型名称
+        if (chatModelVo == null && StringUtils.isNotBlank(chatRequest.getModel())) {
             chatModelVo = chatModelService.selectModelByName(chatRequest.getModel());
         }
         if (chatModelVo == null) {
-            List<ChatModelVo> models = chatModelService.queryList(new org.ruoyi.common.chat.domain.bo.chat.ChatModelBo());
+            // 纯动态查找：根据数据库 chat_model 表中的 category 或模型能力类型，精准提取可用的 AI 对话大模型，绝不硬编码
+            org.ruoyi.common.chat.domain.bo.chat.ChatModelBo queryBo = new org.ruoyi.common.chat.domain.bo.chat.ChatModelBo();
+            List<ChatModelVo> models = chatModelService.queryList(queryBo);
             if (models != null && !models.isEmpty()) {
-                chatModelVo = models.get(0);
+                // 物理级精准筛选：必须匹配数据库 chat_model 表中 category 为 'chat' 的纯粹对话大模型
+                chatModelVo = models.stream()
+                    .filter(m -> "chat".equalsIgnoreCase(m.getCategory()))
+                    .findFirst()
+                    .orElse(models.get(0));
                 chatRequest.setModel(chatModelVo.getModelName());
-                log.info("未匹配到指定模型，自动回退打底模型: {}", chatModelVo.getModelName());
+                log.info("未匹配到指定模型，纯动态匹配通用 AI 对话模型: {}", chatModelVo.getModelName());
             } else {
                 throw new IllegalArgumentException("系统中尚未配置任何 AI 大模型，请在管理后台先添加模型配置");
             }
@@ -358,6 +368,9 @@ public class ChatServiceFacade implements IChatService {
             for (int i = start; i < total; i++) {
                 ChatMessage msg = ctx.get(i);
                 if (!(msg instanceof SystemMessage)) {
+                    if (msg instanceof AiMessage aiMsg && aiMsg.text() != null && aiMsg.text().contains("未在当前企业知识库中检索到")) {
+                        continue;
+                    }
                     fullMessages.add(msg);
                 }
             }
@@ -428,18 +441,60 @@ public class ChatServiceFacade implements IChatService {
 
                 // 普通对话、日常问候与知识库 RAG 问答：直连大模型（包含完整系统提示词 SystemMessage，确保 100% 遵守人设与精炼控制）
                 if (StringUtils.isBlank(result) || result.contains("已成功调用") || result.contains("根据您提供的角色")) {
-                    ChatResponse resp = plannerModel.chat(fullMessages);
-                    result = resp.aiMessage().text();
+                    final StringBuilder streamBuffer = new StringBuilder();
+                    final SseEmitter responseEmitter = chatRequest.getEmitter();
+                    StreamingChatModel streamingModel = chatService.buildStreamingChatModel(chatModelVo, chatRequest);
+                    streamingModel.chat(fullMessages, new StreamingChatResponseHandler() {
+                        @Override
+                        public void onPartialResponse(String partialResponse) {
+                            if (StringUtils.isNotBlank(partialResponse)) {
+                                streamBuffer.append(partialResponse);
+                                try {
+                                    if (responseEmitter != null) {
+                                        java.util.Map<String, Object> map = new java.util.HashMap<>();
+                                        map.put("content", partialResponse);
+                                        responseEmitter.send(SseEmitter.event().name("content").data(JSONUtil.toJsonStr(map)));
+                                    }
+                                } catch (Exception e) {
+                                    log.debug("向响应 SseEmitter 推送字符发生异常: {}", e.getMessage());
+                                }
+                                try {
+                                    SseMessageUtils.sendContent(userId, partialResponse);
+                                } catch (Exception ignored) {}
+                            }
+                        }
+
+                        @Override
+                        public void onCompleteResponse(ChatResponse completeResponse) {
+                            try {
+                                if (responseEmitter != null) {
+                                    responseEmitter.send(SseEmitter.event().name("done").data("{\"done\":true}"));
+                                }
+                            } catch (Exception ignored) {}
+                            try {
+                                SseMessageUtils.sendDone(userId);
+                            } catch (Exception ignored) {}
+                        }
+
+                        @Override
+                        public void onError(Throwable error) {
+                            log.error("流式回答生成异常: {}", error.getMessage());
+                            try {
+                                if (responseEmitter != null) {
+                                    responseEmitter.send(SseEmitter.event().name("error").data("{\"error\":\"" + error.getMessage() + "\"}"));
+                                }
+                            } catch (Exception ignored) {}
+                            try {
+                                SseMessageUtils.sendError(userId, "生成回答异常: " + error.getMessage());
+                            } catch (Exception ignored) {}
+                        }
+                    });
+                    result = streamBuffer.toString();
+                } else {
+                    result = sanitizeOutputText(result);
+                    SseMessageUtils.sendContent(userId, result);
+                    SseMessageUtils.sendDone(userId);
                 }
-
-                if (Thread.currentThread().isInterrupted()) {
-                    return;
-                }
-
-                result = sanitizeOutputText(result);
-
-                SseMessageUtils.sendContent(userId, result);
-                SseMessageUtils.sendDone(userId);
                 // 保存助手回复到数据库 (带参考来源元数据)
                 if (StringUtils.isNotBlank(result)) {
                     String messageToSave = result;
@@ -635,7 +690,13 @@ public class ChatServiceFacade implements IChatService {
             }
             List<Content> contents = retriever.retrieve(Query.from(content));
             if (contents == null || contents.isEmpty()) {
-                return new RagAugmentResult(content, Collections.emptyList());
+                String noFactPrompt = "你是一位严谨的企业知识库智能助手。\n"
+                    + "【防幻觉最高防线】：\n"
+                    + "经过检索，当前企业知识库中【没有找到】任何关于“" + content + "”的记载文档或切片！\n"
+                    + "请明确、礼貌地回复用户：“在当前企业知识库中未检索到相关记载，建议联系人力资源或相关部门核实。”\n"
+                    + "【绝对禁令】：绝对禁止凭空捏造任何职务（如工业自动化、设备调试）、假工号、假电话、假邮箱或虚构背景！\n\n"
+                    + "用户提问：" + content;
+                return new RagAugmentResult(noFactPrompt, Collections.emptyList());
             }
 
             // 1. 无损保留所有相关检索切片，确保知识库 100% 真实发挥 RAG 效果
@@ -937,12 +998,12 @@ public class ChatServiceFacade implements IChatService {
             } catch (NumberFormatException ignored) {
             }
         }
-        // 当【关联知识库】留空时（如通用 AI 助手），优先按数据权限获取当前员工权限范围内可见的知识库列表
+        // 当【关联知识库】留空时（如通用 AI 助手），自动获取当前员工权限范围内可见的全量知识库列表进行智能增强
         try {
             List<KnowledgeInfoVo> accessibleKbs = knowledgeInfoService.queryList(new org.ruoyi.domain.bo.knowledge.KnowledgeInfoBo());
             if (accessibleKbs != null && !accessibleKbs.isEmpty()) {
-                List<Long> kbIds = accessibleKbs.stream().map(KnowledgeInfoVo::getId).toList();
-                log.info("通用智能体权限模式：自动限定在当前员工【数据权限范围内】的知识库，可见库数量: {}", kbIds.size());
+                List<Long> kbIds = accessibleKbs.stream().map(KnowledgeInfoVo::getId).collect(Collectors.toList());
+                log.info("通用智能体全库模式：自动关联当前员工【全量权限知识库】，库数量: {}", kbIds.size());
                 return kbIds;
             }
         } catch (Exception e) {

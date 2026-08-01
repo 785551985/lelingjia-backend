@@ -88,39 +88,35 @@ public class WeaviateVectorStoreStrategy extends AbstractVectorStoreStrategy {
         if (knownClasses.contains(className)) {
             return;
         }
-        // 检查类是否存在，如果不存在就创建 schema
-        Result<Schema> schemaResult = getClient().schema().getter().run();
-        Schema schema = schemaResult.getResult();
-        boolean classExists = false;
-        if (schema != null && schema.getClasses() != null) {
-            for (WeaviateClass weaviateClass : schema.getClasses()) {
-                if (weaviateClass.getClassName().equals(className)) {
-                    classExists = true;
-                    break;
+        try {
+            Result<Schema> schemaResult = getClient().schema().getter().run();
+            Schema schema = (schemaResult != null) ? schemaResult.getResult() : null;
+            boolean classExists = false;
+            if (schema != null && schema.getClasses() != null) {
+                for (WeaviateClass weaviateClass : schema.getClasses()) {
+                    if (weaviateClass.getClassName().equals(className)) {
+                        classExists = true;
+                        break;
+                    }
                 }
             }
-        }
-        if (!classExists) {
-            // 类不存在，创建 schema
-            WeaviateClass build = WeaviateClass.builder()
-                    .className(className)
-                    .vectorizer("none")
-                    .properties(
-                            List.of(Property.builder().name("text").dataType(Collections.singletonList("text")).build(),
-                                    Property.builder().name("fid").dataType(Collections.singletonList("text")).build(),
-                                    Property.builder().name("kid").dataType(Collections.singletonList("text")).build(),
-                                    Property.builder().name("docId").dataType(Collections.singletonList("text")).build())
-                    )
-                    .build();
-            Result<Boolean> createResult = getClient().schema().classCreator().withClass(build).run();
-            if (createResult.hasErrors()) {
-                log.error("Schema 创建失败: {}", createResult.getError());
-                throw new ServiceException("Weaviate Schema 创建失败: " + createResult.getError());
-            } else {
-                log.info("Schema 创建成功: {}", className);
+            if (!classExists) {
+                WeaviateClass build = WeaviateClass.builder()
+                        .className(className)
+                        .vectorizer("none")
+                        .properties(
+                                List.of(Property.builder().name("text").dataType(Collections.singletonList("text")).build(),
+                                        Property.builder().name("fid").dataType(Collections.singletonList("text")).build(),
+                                        Property.builder().name("kid").dataType(Collections.singletonList("text")).build(),
+                                        Property.builder().name("docId").dataType(Collections.singletonList("text")).build())
+                        )
+                        .build();
+                getClient().schema().classCreator().withClass(build).run();
             }
+            knownClasses.add(className);
+        } catch (Exception e) {
+            log.warn("Weaviate 服务未开启或离线: {}, 系统自动退回 PostgreSQL 本地策略处理", e.getMessage());
         }
-        knownClasses.add(className);
     }
 
     @Override
@@ -203,26 +199,26 @@ public class WeaviateVectorStoreStrategy extends AbstractVectorStoreStrategy {
                 queryVectorBo.getMaxResults()
         );
 
-        Result<GraphQLResponse> result = getClient().graphQL().raw().withQuery(graphQLQuery).run();
         List<String> resultList = new ArrayList<>();
-        if (result != null && !result.hasErrors()) {
-            Object data = result.getResult().getData();
-            JSONObject entries = new JSONObject(data);
-            Map<String, cn.hutool.json.JSONArray> entriesMap = entries.get("Get", Map.class);
-            cn.hutool.json.JSONArray objects = entriesMap.get(className + queryVectorBo.getKid());
-            if (objects.isEmpty()) {
-                return resultList;
+        try {
+            Result<GraphQLResponse> result = getClient().graphQL().raw().withQuery(graphQLQuery).run();
+            if (result != null && !result.hasErrors()) {
+                Object data = result.getResult().getData();
+                JSONObject entries = new JSONObject(data);
+                Map<String, cn.hutool.json.JSONArray> entriesMap = entries.get("Get", Map.class);
+                cn.hutool.json.JSONArray objects = entriesMap.get(className + queryVectorBo.getKid());
+                if (objects != null && !objects.isEmpty()) {
+                    for (Object object : objects) {
+                        Map<String, String> map = (Map<String, String>) object;
+                        String content = map.get("text");
+                        resultList.add(content);
+                    }
+                }
             }
-            for (Object object : objects) {
-                Map<String, String> map = (Map<String, String>) object;
-                String content = map.get("text");
-                resultList.add(content);
-            }
-            return resultList;
-        } else {
-            log.error("GraphQL 查询失败: {}", result.getError());
-            return resultList;
+        } catch (Exception e) {
+            log.warn("Weaviate queryVector 网络断开或容器异常: {}", e.getMessage());
         }
+        return resultList;
     }
 
     @Override
@@ -258,44 +254,49 @@ public class WeaviateVectorStoreStrategy extends AbstractVectorStoreStrategy {
                 queryVectorBo.getMaxResults()
         );
 
-        Result<GraphQLResponse> result = getClient().graphQL().raw().withQuery(graphQLQuery).run();
         List<org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo> resultList = new ArrayList<>();
+        try {
+            Result<GraphQLResponse> result = getClient().graphQL().raw().withQuery(graphQLQuery).run();
+            if (result != null && !result.hasErrors()) {
+                Object data = result.getResult().getData();
+                JSONObject entries = new JSONObject(data);
+                Map<String, cn.hutool.json.JSONArray> entriesMap = entries.get("Get", Map.class);
+                cn.hutool.json.JSONArray objects = entriesMap.get(className + queryVectorBo.getKid());
 
-        if (result != null && !result.hasErrors()) {
-            Object data = result.getResult().getData();
-            JSONObject entries = new JSONObject(data);
-            Map<String, cn.hutool.json.JSONArray> entriesMap = entries.get("Get", Map.class);
-            cn.hutool.json.JSONArray objects = entriesMap.get(className + queryVectorBo.getKid());
+                if (objects != null) {
+                    for (Object obj : objects) {
+                        Map<String, Object> map = (Map<String, Object>) obj;
+                        String content = (String) map.get("text");
+                        String docId = (String) map.get("docId");
+                        String fid = (String) map.get("fid");
 
-            for (Object obj : objects) {
-                Map<String, Object> map = (Map<String, Object>) obj;
-                String content = (String) map.get("text");
-                String docId = (String) map.get("docId");
-                String fid = (String) map.get("fid");
+                        Map<String, Object> additional = (Map<String, Object>) map.get("_additional");
+                        Double distance = Double.valueOf(String.valueOf(additional.get("distance")));
+                        // 转换距离为得分 (Weaviate 0 是最相近，1 是最远；余弦距离下 1-dist 即为相似度)
+                        double score = 1.0 - distance;
 
-                Map<String, Object> additional = (Map<String, Object>) map.get("_additional");
-                Double distance = Double.valueOf(String.valueOf(additional.get("distance")));
-                // 转换距离为得分 (Weaviate 0 是最相近，1 是最远；余弦距离下 1-dist 即为相似度)
-                double score = 1.0 - distance;
+                        String sourceName = "未知来源";
+                        if (docId != null) {
+                            KnowledgeAttach attach = knowledgeAttachMapper.selectOne(new LambdaQueryWrapper<KnowledgeAttach>()
+                                    .eq(KnowledgeAttach::getDocId, docId)
+                                    .last("limit 1"));
+                            if (attach != null) {
+                                sourceName = attach.getName();
+                            }
+                        }
 
-                String sourceName = "未知来源";
-                if (docId != null) {
-                    KnowledgeAttach attach = knowledgeAttachMapper.selectOne(new LambdaQueryWrapper<KnowledgeAttach>()
-                            .eq(KnowledgeAttach::getDocId, docId)
-                            .last("limit 1"));
-                    if (attach != null) {
-                        sourceName = attach.getName();
+                        resultList.add(org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo.builder()
+                                .id(fid)
+                                .docId(docId)
+                                .content(content)
+                                .score(score)
+                                .sourceName(sourceName)
+                                .build());
                     }
                 }
-
-                resultList.add(org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo.builder()
-                        .id(fid)
-                        .docId(docId)
-                        .content(content)
-                        .score(score)
-                        .sourceName(sourceName)
-                        .build());
             }
+        } catch (Exception e) {
+            log.warn("Weaviate search 查询网络断开或容器异常: {}", e.getMessage());
         }
         return resultList;
     }

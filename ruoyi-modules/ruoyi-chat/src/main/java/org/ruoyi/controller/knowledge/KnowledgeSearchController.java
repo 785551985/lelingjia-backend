@@ -37,9 +37,9 @@ public class KnowledgeSearchController extends BaseController {
         
         try {
             String tenantStr = LoginHelper.getTenantId();
-            request.setTenantId(tenantStr != null ? Long.parseLong(tenantStr) : 0L);
+            request.setRawTenantId(tenantStr);
         } catch (Exception e) {
-            request.setTenantId(0L);
+            request.setRawTenantId(null);
         }
         
         try {

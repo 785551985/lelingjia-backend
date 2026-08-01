@@ -72,6 +72,8 @@ public class KnowledgeAttachVo implements Serializable {
     @ExcelProperty(value = "备注")
     private String remark;
 
+
+
     /**
      * 上传时间（来自 BaseEntity.createTime）
      */

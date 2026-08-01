@@ -59,5 +59,15 @@ public class KnowledgeAttachBo extends BaseEntity {
      */
     private String remark;
 
+    /**
+     * 解析状态 (0-未解析 1-解析中 2-解析成功 3-解析失败)
+     */
+    private String status;
+
+    /**
+     * 审批状态 (0-未审批 1-待审核 2-已通过 3-已驳回)
+     */
+    private String approveStatus;
+
 
 }
