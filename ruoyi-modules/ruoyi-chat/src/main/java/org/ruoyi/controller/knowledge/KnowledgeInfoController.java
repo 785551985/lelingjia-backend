@@ -64,7 +64,7 @@ public class KnowledgeInfoController extends BaseController {
      *
      * @param id 主键
      */
-    @SaCheckPermission("system:info:query")
+    @SaCheckLogin
     @GetMapping("/{id}")
     public R<KnowledgeInfoVo> getInfo(@NotNull(message = "主键不能为空")
                                      @PathVariable Long id) {

@@ -42,7 +42,7 @@ public class KnowledgeAttachController extends BaseController {
     /**
      * 查询知识库附件列表
      */
-    @SaCheckPermission("system:attach:list")
+    @cn.dev33.satoken.annotation.SaCheckLogin
     @GetMapping("/list")
     public TableDataInfo<KnowledgeAttachVo> list(KnowledgeAttachBo bo, PageQuery pageQuery) {
         return knowledgeAttachService.queryPageList(bo, pageQuery);
@@ -64,7 +64,7 @@ public class KnowledgeAttachController extends BaseController {
      *
      * @param id 主键
      */
-    @SaCheckPermission("system:attach:query")
+    @cn.dev33.satoken.annotation.SaCheckLogin
     @GetMapping("/{id}")
     public R<KnowledgeAttachVo> getInfo(@NotNull(message = "主键不能为空")
                                      @PathVariable Long id) {
