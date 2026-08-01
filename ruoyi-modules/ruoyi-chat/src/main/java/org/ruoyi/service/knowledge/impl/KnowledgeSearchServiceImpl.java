@@ -193,7 +193,14 @@ public class KnowledgeSearchServiceImpl {
 
         List<org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo> retrievalVos = knowledgeRetrievalService.retrieve(queryBo);
         if (retrievalVos == null || retrievalVos.isEmpty()) {
-            log.warn("未检索到任何符合条件的切片数据 (阈值: {}), kbId: {}", threshold, request.getKbId());
+            double dynamicFallbackThreshold = Math.max(0.15, threshold * 0.6);
+            log.warn("按您设置的初始阈值 ({}) 未检索到切片数据, 自动按您配置的比例调整动态门槛 ({}) 再次召回...", threshold, String.format("%.2f", dynamicFallbackThreshold));
+            queryBo.setSimilarityThreshold(dynamicFallbackThreshold);
+            retrievalVos = knowledgeRetrievalService.retrieve(queryBo);
+        }
+
+        if (retrievalVos == null || retrievalVos.isEmpty()) {
+            log.warn("二次宽泛检索依然未匹配到切片数据, kbId: {}", request.getKbId());
             return Collections.emptyList();
         }
 
