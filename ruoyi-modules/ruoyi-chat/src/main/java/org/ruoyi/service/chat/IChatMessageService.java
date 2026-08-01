@@ -51,6 +51,11 @@ public interface IChatMessageService {
     Boolean insertByBo(ChatMessageBo bo);
 
     /**
+     * 官方标准：统一保存 AI 助手的回答消息（支持带参考来源元数据）
+     */
+    Boolean saveAssistantMessage(Long sessionId, String content, Object sources);
+
+    /**
      * 修改聊天消息
      *
      * @param bo 聊天消息

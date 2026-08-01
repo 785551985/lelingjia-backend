@@ -104,6 +104,34 @@ public class ChatMessageServiceImpl implements IChatMessageService {
     }
 
     /**
+     * 官方标准：统一保存 AI 助手的回答消息（支持带参考来源元数据）
+     */
+    @Override
+    public Boolean saveAssistantMessage(Long sessionId, String content, Object sources) {
+        if (sessionId == null || org.ruoyi.common.core.utils.StringUtils.isBlank(content)) {
+            return false;
+        }
+        try {
+            ChatMessageBo aiMsgBo = new ChatMessageBo();
+            aiMsgBo.setSessionId(sessionId);
+            aiMsgBo.setRole("assistant");
+
+            String finalContent = content.trim();
+            if (sources != null) {
+                String sourcesJson = com.alibaba.fastjson.JSON.toJSONString(sources);
+                if (sourcesJson.length() > 2) {
+                    finalContent += "\n<sources>" + sourcesJson + "</sources>";
+                }
+            }
+            aiMsgBo.setContent(finalContent);
+            return insertByBo(aiMsgBo);
+        } catch (Exception e) {
+            log.error("保存 AI 助手消息发生异常, sessionId: {}", sessionId, e);
+            return false;
+        }
+    }
+
+    /**
      * 修改聊天消息
      *
      * @param bo 聊天消息

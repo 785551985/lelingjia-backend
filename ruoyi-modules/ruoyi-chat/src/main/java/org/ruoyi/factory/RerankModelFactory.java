@@ -47,7 +47,22 @@ public class RerankModelFactory {
             ChatModelVo modelConfig = chatModelService.selectModelByName(rerankModelName);
 
             if (modelConfig == null) {
-                throw new IllegalArgumentException("未找到重排序模型配置，name=" + name);
+                log.warn("未按指定名称 [{}] 查找到重排序模型配置，尝试从数据库中动态匹配已启用的默认 Rerank 模型...", name);
+                try {
+                    org.ruoyi.common.chat.domain.bo.chat.ChatModelBo searchBo = new org.ruoyi.common.chat.domain.bo.chat.ChatModelBo();
+                    searchBo.setCategory("rerank");
+                    List<ChatModelVo> rerankList = chatModelService.queryList(searchBo);
+                    if (rerankList != null && !rerankList.isEmpty()) {
+                        modelConfig = rerankList.get(0);
+                        log.info("动态匹配到全局已配置的重排序模型: [{}] ({})", modelConfig.getModelName(), modelConfig.getProviderCode());
+                    }
+                } catch (Exception ex) {
+                    log.error("动态尝试加载默认重排序模型异常", ex);
+                }
+            }
+
+            if (modelConfig == null) {
+                throw new IllegalArgumentException("系统中未配置任何可用的重排序模型 (rerank)，请先在【系统管理-模型管理】中新增配置一个重排序模型。");
             }
             return createModelInstance(modelConfig.getProviderCode(), modelConfig);
         });

@@ -31,6 +31,9 @@ public class KnowledgeSearchServiceImpl {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Autowired
+    private org.ruoyi.service.chat.IChatMessageService chatMessageService;
+
     public ChatResult streamSearchAndAnswer(SearchRequest request) {
         log.info("发起 PostgreSQL 混合知识问答, 租户: {}, 知识库: {}, 问题: {}", 
                 request.getTenantId(), request.getKbId(), request.getQuery());
@@ -67,13 +70,34 @@ public class KnowledgeSearchServiceImpl {
             String systemPrompt = buildSystemPrompt(finalChunks);
             List<Map<String, String>> historyWindow = limitHistoryWindow(request.getHistory());
 
-            LlmAdapter activeAdapter = modelFactory.getActiveAdapter();
-            Flux<String> modelStream = activeAdapter.chatStream(systemPrompt, request.getQuery(), historyWindow);
+            // 准备兜底原文答案（当大模型 API 失效/未配置/403 时使用）
+            String fallbackRawContent = buildFallbackRawContent(finalChunks);
+
+            Flux<String> modelStream;
+            try {
+                LlmAdapter activeAdapter = modelFactory.getActiveAdapter();
+                modelStream = activeAdapter.chatStream(systemPrompt, request.getQuery(), historyWindow);
+            } catch (Exception e) {
+                log.warn("获取/调用大模型适配器异常，直接自动降级为知识库原文输出: {}", e.getMessage());
+                modelStream = Flux.just(fallbackRawContent);
+            }
 
             StringBuilder responseBuffer = new StringBuilder();
-            Flux<String> cachedStream = modelStream.doOnNext(responseBuffer::append)
+            Flux<String> cachedStream = modelStream
+                    .onErrorResume(err -> {
+                        log.warn("大模型流式响应发生异常 ({}), 触发自动降级输出知识库原文", err.getMessage());
+                        return Flux.just(fallbackRawContent);
+                    })
+                    .doOnNext(responseBuffer::append)
                     .doOnComplete(() -> {
-                        redisTemplate.opsForValue().set(cacheKey, responseBuffer.toString(), 10, TimeUnit.MINUTES);
+                        if (responseBuffer.length() > 0) {
+                            String fullAns = responseBuffer.toString();
+                            redisTemplate.opsForValue().set(cacheKey, fullAns, 10, TimeUnit.MINUTES);
+
+                            // 🌟 官方标准解耦落盘：调用 IChatMessageService 规范落盘服务
+                            List<SourceVo> sourceVos = finalChunks.stream().map(this::mapToSourceVo).collect(Collectors.toList());
+                            chatMessageService.saveAssistantMessage(request.getSessionId(), fullAns, sourceVos);
+                        }
                     });
 
             result.setAnswerStream(cachedStream);
@@ -81,10 +105,27 @@ public class KnowledgeSearchServiceImpl {
 
         } catch (Exception e) {
             log.error("知识库问答过程发生异常", e);
-            result.setAnswerStream(Flux.just("抱歉，知识库服务发生内部错误：" + e.getMessage()));
+            result.setAnswerStream(Flux.just("抱歉，系统处理发生异常: " + e.getMessage()));
             result.setSources(Collections.emptyList());
             return result;
         }
+    }
+
+    /**
+     * 当大模型服务不可用时，构建直接输出知识库原文切片的兜底回答
+     */
+    private String buildFallbackRawContent(List<ChunkMatch> chunks) {
+        if (chunks == null || chunks.isEmpty()) {
+            return "未在当前知识库中检索到相关公开制度，建议联系相关部门确认。";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("根据您查询的知识库内容，已找到以下匹配解答：\n\n");
+        for (int i = 0; i < chunks.size(); i++) {
+            ChunkMatch chunk = chunks.get(i);
+            sb.append("**【参考文档 ").append(i + 1).append("】**: *").append(chunk.getDocName()).append("*\n");
+            sb.append(chunk.getContent().trim()).append("\n\n");
+        }
+        return sb.toString();
     }
 
     /**
@@ -268,6 +309,7 @@ public class KnowledgeSearchServiceImpl {
         private Long tenantId;
         private Long deptId;
         private Long kbId;
+        private Long sessionId;
         private String query;
         private List<Map<String, String>> history;
 
@@ -277,6 +319,8 @@ public class KnowledgeSearchServiceImpl {
         public void setDeptId(Long deptId) { this.deptId = deptId; }
         public Long getKbId() { return kbId; }
         public void setKbId(Long kbId) { this.kbId = kbId; }
+        public Long getSessionId() { return sessionId; }
+        public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
         public String getQuery() { return query; }
         public void setQuery(String query) { this.query = query; }
         public List<Map<String, String>> getHistory() { return history; }

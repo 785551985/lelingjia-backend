@@ -136,6 +136,140 @@ public class ChatModelController extends BaseController {
     }
 
     /**
+     * 真实测试模型连通性（带真实握手与精确原因反馈）
+     */
+    @SaCheckPermission("system:model:query")
+    @PostMapping("/test/{id}")
+    public R<java.util.Map<String, Object>> testConnection(@NotNull(message = "模型ID不能为空") @PathVariable Long id) {
+        ChatModelVo model = chatModelService.queryById(id);
+        if (model == null) {
+            return R.fail("未找到指定的模型记录");
+        }
+
+        long startTime = System.currentTimeMillis();
+        try {
+            // 真实触发连通性握手测试
+            String provider = StringUtils.isNotBlank(model.getProviderCode()) ? model.getProviderCode().toLowerCase() : "";
+            String modelName = model.getModelName();
+            String apiKey = model.getApiKey();
+
+            if (StringUtils.isBlank(apiKey) && !"ollama".equals(provider)) {
+                return R.fail("模型未配置 API Key 密钥！");
+            }
+
+            // 根据不同的模型分类构建轻量级握手请求
+            String apiHost = StringUtils.isNotBlank(model.getApiHost()) ? model.getApiHost() : "";
+            if (StringUtils.isBlank(apiHost)) {
+                if (provider.contains("qianwen") || provider.contains("bailian") || provider.contains("dashscope")) {
+                    apiHost = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+                } else if (provider.contains("deepseek")) {
+                    apiHost = "https://api.deepseek.com/v1";
+                } else if (provider.contains("zhipu")) {
+                    apiHost = "https://open.bigmodel.cn/api/paas/v4";
+                } else if (provider.contains("siliconflow")) {
+                    apiHost = "https://api.siliconflow.cn/v1";
+                } else {
+                    apiHost = "https://api.openai.com/v1";
+                }
+            }
+
+            String baseUrl = apiHost.replaceAll("/+$", "");
+            String url = baseUrl.endsWith("/models") ? baseUrl : baseUrl + "/models";
+
+            cn.hutool.http.HttpResponse response = cn.hutool.http.HttpUtil.createGet(url)
+                    .header("Authorization", "Bearer " + apiKey)
+                    .timeout(12000)
+                    .execute();
+
+            // 若厂商不支持 /models 列表接口返回 404，根据模型类型触发对应的轻量级握手测试
+            if (response.getStatus() == 404) {
+                boolean isRerank = "rerank".equalsIgnoreCase(model.getCategory()) || modelName.contains("rerank");
+                if (isRerank) {
+                    String rerankUrl;
+                    com.alibaba.fastjson.JSONObject rerankBody = new com.alibaba.fastjson.JSONObject();
+                    
+                    if (provider.contains("qianwen") || provider.contains("bailian") || provider.contains("dashscope") || provider.contains("阿里云")) {
+                        rerankUrl = "https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank";
+                        rerankBody.put("model", modelName);
+                        com.alibaba.fastjson.JSONObject inputObj = new com.alibaba.fastjson.JSONObject();
+                        inputObj.put("query", "hi");
+                        com.alibaba.fastjson.JSONArray docs = new com.alibaba.fastjson.JSONArray();
+                        docs.add("hello");
+                        inputObj.put("documents", docs);
+                        rerankBody.put("input", inputObj);
+                    } else {
+                        rerankUrl = baseUrl.endsWith("/rerank") ? baseUrl : baseUrl + "/rerank";
+                        rerankBody.put("model", modelName);
+                        rerankBody.put("query", "hi");
+                        com.alibaba.fastjson.JSONArray docs = new com.alibaba.fastjson.JSONArray();
+                        docs.add("hello");
+                        rerankBody.put("documents", docs);
+                    }
+
+                    response = cn.hutool.http.HttpUtil.createPost(rerankUrl)
+                            .header("Authorization", "Bearer " + apiKey)
+                            .header("Content-Type", "application/json")
+                            .body(rerankBody.toJSONString())
+                            .timeout(12000)
+                            .execute();
+                } else {
+                    String chatUrl = baseUrl.endsWith("/chat/completions") ? baseUrl : baseUrl + "/chat/completions";
+                    com.alibaba.fastjson.JSONObject chatBody = new com.alibaba.fastjson.JSONObject();
+                    chatBody.put("model", modelName);
+                    chatBody.put("max_tokens", 1);
+                    com.alibaba.fastjson.JSONArray messages = new com.alibaba.fastjson.JSONArray();
+                    com.alibaba.fastjson.JSONObject msg = new com.alibaba.fastjson.JSONObject();
+                    msg.put("role", "user");
+                    msg.put("content", "hi");
+                    messages.add(msg);
+                    chatBody.put("messages", messages);
+
+                    response = cn.hutool.http.HttpUtil.createPost(chatUrl)
+                            .header("Authorization", "Bearer " + apiKey)
+                            .header("Content-Type", "application/json")
+                            .body(chatBody.toJSONString())
+                            .timeout(12000)
+                            .execute();
+                }
+            }
+
+            long latency = System.currentTimeMillis() - startTime;
+
+            if (response.getStatus() == 200) {
+                java.util.Map<String, Object> resMap = new java.util.HashMap<>();
+                resMap.put("latency", latency);
+                resMap.put("msg", "API 响应正常，密钥与模型配置有效！");
+                return R.ok(resMap);
+            } else {
+                String body = response.body();
+                String errMsg = "HTTP " + response.getStatus();
+                if (StringUtils.isNotBlank(body)) {
+                    try {
+                        com.alibaba.fastjson.JSONObject json = com.alibaba.fastjson.JSON.parseObject(body);
+                        if (json.containsKey("error")) {
+                            Object errObj = json.get("error");
+                            if (errObj instanceof com.alibaba.fastjson.JSONObject) {
+                                errMsg += ": " + ((com.alibaba.fastjson.JSONObject) errObj).getString("message");
+                            } else {
+                                errMsg += ": " + errObj.toString();
+                            }
+                        } else if (json.containsKey("message")) {
+                            errMsg += ": " + json.getString("message");
+                        }
+                    } catch (Exception ignored) {}
+                }
+                return R.fail("测试失败: " + errMsg);
+            }
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            if (msg != null && (msg.contains("timed out") || msg.contains("Timeout"))) {
+                return R.fail("连接超时：国内服务器无法直连该 API 域名，请在模型配置中填写中转代理地址 (API Host)！");
+            }
+            return R.fail("连接失败: " + msg);
+        }
+    }
+
+    /**
      * 删除模型管理
      *
      * @param ids 主键串
