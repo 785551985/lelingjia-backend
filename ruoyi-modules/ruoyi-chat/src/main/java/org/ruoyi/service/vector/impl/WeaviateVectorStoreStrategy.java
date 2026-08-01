@@ -92,10 +92,12 @@ public class WeaviateVectorStoreStrategy extends AbstractVectorStoreStrategy {
         Result<Schema> schemaResult = getClient().schema().getter().run();
         Schema schema = schemaResult.getResult();
         boolean classExists = false;
-        for (WeaviateClass weaviateClass : schema.getClasses()) {
-            if (weaviateClass.getClassName().equals(className)) {
-                classExists = true;
-                break;
+        if (schema != null && schema.getClasses() != null) {
+            for (WeaviateClass weaviateClass : schema.getClasses()) {
+                if (weaviateClass.getClassName().equals(className)) {
+                    classExists = true;
+                    break;
+                }
             }
         }
         if (!classExists) {
