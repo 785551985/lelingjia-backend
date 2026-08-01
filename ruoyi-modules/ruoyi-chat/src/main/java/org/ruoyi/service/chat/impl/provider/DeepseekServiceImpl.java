@@ -29,14 +29,30 @@ public class DeepseekServiceImpl implements AbstractChatService {
 
     @Override
     public StreamingChatModel buildStreamingChatModel(ChatModelVo chatModelVo, ChatRequest chatRequest) {
+        String baseUrl = cleanBaseUrl(chatModelVo.getApiHost());
+        log.info("[Deepseek] 使用规范化 API BaseUrl: {}, Model: {}", baseUrl, chatModelVo.getModelName());
         return OpenAiStreamingChatModel.builder()
-            .baseUrl(chatModelVo.getApiHost())
+            .baseUrl(baseUrl)
             .apiKey(chatModelVo.getApiKey())
             .modelName(chatModelVo.getModelName())
             .timeout(java.time.Duration.ofMinutes(10))
             .listeners(List.of(new MyChatModelListener()))
             .returnThinking(chatRequest.getEnableThinking())
             .build();
+    }
+
+    private String cleanBaseUrl(String baseUrl) {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return "https://api.deepseek.com/v1";
+        }
+        baseUrl = baseUrl.trim();
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+        if (!baseUrl.endsWith("/v1")) {
+            baseUrl = baseUrl + "/v1";
+        }
+        return baseUrl;
     }
 
 
