@@ -13,5 +13,8 @@ BEGIN
     END LOOP;
 END $$;
 
--- 2. 线上知识库全量阈值优化对齐（防止短词查询被 0.5 误杀）
+-- 2. 补全/校准 chat_model 模型表的 019466 租户模型数据，确保跨租户能 100% 匹配到 AI 大模型
+UPDATE chat_model SET tenant_id = '019466' WHERE tenant_id IS NULL OR tenant_id = '' OR tenant_id = '19466';
+
+-- 3. 线上知识库全量阈值优化对齐（防止短词查询被 0.5 误杀）
 UPDATE knowledge_info SET rerank_score_threshold = 0.1, similarity_threshold = 0.15;

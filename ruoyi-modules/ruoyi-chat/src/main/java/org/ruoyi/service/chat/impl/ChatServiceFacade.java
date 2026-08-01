@@ -190,6 +190,9 @@ public class ChatServiceFacade implements IChatService {
             // 纯动态查找：根据数据库 chat_model 表中的 category 或模型能力类型，精准提取可用的 AI 对话大模型，绝不硬编码
             org.ruoyi.common.chat.domain.bo.chat.ChatModelBo queryBo = new org.ruoyi.common.chat.domain.bo.chat.ChatModelBo();
             List<ChatModelVo> models = chatModelService.queryList(queryBo);
+            if (models == null || models.isEmpty()) {
+                models = TenantHelper.ignore(() -> chatModelService.queryList(queryBo));
+            }
             if (models != null && !models.isEmpty()) {
                 // 物理级精准筛选：必须匹配数据库 chat_model 表中 category 为 'chat' 的纯粹对话大模型
                 chatModelVo = models.stream()
