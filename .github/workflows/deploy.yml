@@ -1,7 +1,9 @@
 name: 部署后端 Java API (api.ylglxt.cn)
 
 on:
-  workflow_dispatch: # 仅在 GitHub 网页端手动点击 "Run workflow" 按钮时触发部署
+  push:
+    branches: [ master ]
+  workflow_dispatch: # 亦支持在 GitHub 网页端手动点击 "Run workflow" 按钮触发部署
 
 jobs:
   build-and-deploy:
@@ -70,6 +72,7 @@ jobs:
                 sleep 2
             fi
             nohup java -jar /www/wwwroot/backend/ruoyi-admin.jar \
+              --server.port=6039 \
               --spring.profiles.active=prod \
               --spring.datasource.dynamic.datasource.master.url="jdbc:postgresql://127.0.0.1:5372/dazhao_kb?currentSchema=public&stringtype=unspecified" \
               --spring.datasource.dynamic.datasource.master.driverClassName="org.postgresql.Driver" \
