@@ -64,17 +64,11 @@ jobs:
 
             # 2. 平滑重启 Java 服务
             PID=$(ps -ef | grep ruoyi-admin.jar | grep -v grep | awk '{print $2}')
-            if [ -n "$PID" ]; then
-                echo "停止旧进程 PID: $PID"
-                kill -9 $PID || true
-                sleep 2
-            fi
-            nohup java -Xms512m -Xmx1024m -jar /www/wwwroot/backend/ruoyi-admin.jar \
-              --server.port=6039 \
-              --spring.profiles.active=prod \
-              --spring.datasource.dynamic.datasource.master.url="jdbc:postgresql://127.0.0.1:5372/dazhao_kb?currentSchema=public&stringtype=unspecified" \
-              --spring.datasource.dynamic.datasource.master.driverClassName="org.postgresql.Driver" \
-              --spring.datasource.dynamic.datasource.master.username="dazhao_kb" \
-              --spring.datasource.dynamic.datasource.master.password="dz123456" \
-              > /www/wwwroot/backend/ruoyi.log 2>&1 &
+            echo "停止旧进程 PID: $PID"
+            [ -n "$PID" ] && kill -9 $PID || true
+            sleep 2
+            
+            # 使用独立 nohup 子 shell 启动，避免 GitHub Actions 步骤卡住或参数断裂
+            nohup java -Xms512m -Xmx1024m -jar /www/wwwroot/backend/ruoyi-admin.jar --server.port=6039 --spring.profiles.active=prod > /www/wwwroot/backend/ruoyi.log 2>&1 &
+            
             echo "✅ 后端 SQL 增量同步与 Java 服务平滑重启完成！"
