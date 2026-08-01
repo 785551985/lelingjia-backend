@@ -1,9 +1,7 @@
 name: 部署后端 Java API (api.ylglxt.cn)
 
 on:
-  push:
-    branches: [ master ]
-  workflow_dispatch: # 亦支持在 GitHub 网页端手动点击 "Run workflow" 按钮触发部署
+  workflow_dispatch: # 仅在 GitHub 网页端手动点击 "Run workflow" 按钮时触发部署
 
 jobs:
   build-and-deploy:
