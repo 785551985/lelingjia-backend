@@ -67,7 +67,7 @@ public class KnowledgeSearchServiceImpl {
             List<ChunkMatch> finalChunks = resolveInformationConflict(rerankedChunks);
             result.setSources(finalChunks.stream().map(this::mapToSourceVo).collect(Collectors.toList()));
 
-            String systemPrompt = buildSystemPrompt(finalChunks);
+            String systemPrompt = buildSystemPrompt(request, finalChunks);
             List<Map<String, String>> historyWindow = limitHistoryWindow(request.getHistory());
 
             // 准备兜底原文答案（当大模型 API 失效/未配置/403 时使用）
@@ -253,7 +253,7 @@ public class KnowledgeSearchServiceImpl {
                 .collect(Collectors.toList());
     }
 
-    private String buildSystemPrompt(List<ChunkMatch> chunks) {
+    private String buildSystemPrompt(SearchRequest request, List<ChunkMatch> chunks) {
         StringBuilder sb = new StringBuilder();
         sb.append("你是乐龄家企业知识库官方智能助手。请严格遵守以下规则回答：\n\n");
         sb.append("【核心安全与真实性准则】\n");
@@ -261,6 +261,12 @@ public class KnowledgeSearchServiceImpl {
         sb.append("2. **无意义/极短输入处理**：若用户输入仅有简单数字（如'1'）、单字、标点或无具体语义，请直接礼貌回复：“您好！请问您需要了解知识库中的哪项业务或制度？您可以提供更具体的问题，我为您精准解答。”，绝对禁止自作主张臆测意图去列举虚假的联系方式、邮箱或业务分类！\n");
         sb.append("3. **查无实证明确告知**：如果参考资料中未记载回答用户问题所需的内容，请明确说明：“抱歉，在知识库当前资料中未检索到相关内容。”，切勿胡乱补充外部假知识或虚构客服热线。\n");
         sb.append("4. **版本最新原则**：若参考资料存在冲突，必须以【生效日期最新】的资料为准。\n\n");
+
+        if (request != null && org.ruoyi.common.core.utils.StringUtils.isNotBlank(request.getAgentPrompt())) {
+            sb.append("【智能体专属设定与角色指令】\n");
+            sb.append(request.getAgentPrompt().trim()).append("\n\n");
+        }
+
         sb.append("【参考资料】\n");
 
         if (chunks == null || chunks.isEmpty()) {
@@ -321,6 +327,7 @@ public class KnowledgeSearchServiceImpl {
         private Long deptId;
         private Long kbId;
         private Long sessionId;
+        private String agentPrompt;
         private String query;
         private List<Map<String, String>> history;
 
@@ -332,6 +339,8 @@ public class KnowledgeSearchServiceImpl {
         public void setKbId(Long kbId) { this.kbId = kbId; }
         public Long getSessionId() { return sessionId; }
         public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
+        public String getAgentPrompt() { return agentPrompt; }
+        public void setAgentPrompt(String agentPrompt) { this.agentPrompt = agentPrompt; }
         public String getQuery() { return query; }
         public void setQuery(String query) { this.query = query; }
         public List<Map<String, String>> getHistory() { return history; }
