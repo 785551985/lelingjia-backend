@@ -471,7 +471,9 @@ public class ChatServiceFacade implements IChatService {
                         public void onCompleteResponse(ChatResponse completeResponse) {
                             try {
                                 if (responseEmitter != null) {
-                                    responseEmitter.send(SseEmitter.event().name("done").data("{\"done\":true}"));
+                                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                                    map.put("done", true);
+                                    responseEmitter.send(SseEmitter.event().name("done").data(JSONUtil.toJsonStr(map)));
                                 }
                             } catch (Exception ignored) {}
                             try {
@@ -484,7 +486,9 @@ public class ChatServiceFacade implements IChatService {
                             log.error("流式回答生成异常: {}", error.getMessage());
                             try {
                                 if (responseEmitter != null) {
-                                    responseEmitter.send(SseEmitter.event().name("error").data("{\"error\":\"" + error.getMessage() + "\"}"));
+                                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                                    map.put("error", error.getMessage() != null ? error.getMessage() : "未知错误");
+                                    responseEmitter.send(SseEmitter.event().name("error").data(JSONUtil.toJsonStr(map)));
                                 }
                             } catch (Exception ignored) {}
                             try {
