@@ -81,11 +81,33 @@ public class AliBaiLianRerankModelService implements RerankModelService {
      * 执行HTTP请求并解析响应
      */
     private AliBaiLianRerankResponse executeRequest(AliBaiLianRerankRequest request) throws IOException {
-        String jsonBody = request.toJson();
+        // 构建阿里百炼 Native 原生 API 规范格式
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("model", chatModelVo.getModelName());
+        
+        java.util.Map<String, Object> input = new java.util.HashMap<>();
+        input.put("query", request.query());
+        input.put("documents", request.documents());
+        payload.put("input", input);
+
+        java.util.Map<String, Object> parameters = new java.util.HashMap<>();
+        parameters.put("top_n", request.topN() != null ? request.topN() : request.documents().size());
+        parameters.put("return_documents", request.returnDocuments() != null ? request.returnDocuments() : true);
+        payload.put("parameters", parameters);
+
+        String jsonBody = objectMapper.writeValueAsString(payload);
         RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
 
-        // 阿里百炼重排序 OpenAI兼容端点
-        String url = chatModelVo.getApiHost() + "/compatible-api/v1/reranks";
+        // 阿里百炼官方 Native 专用重排序 Endpoint
+        String apiHost = chatModelVo.getApiHost();
+        if (apiHost == null || apiHost.isBlank() || apiHost.contains("compatible-mode") || apiHost.contains("compatible-api")) {
+            apiHost = "https://dashscope.aliyuncs.com";
+        }
+        if (apiHost.endsWith("/")) {
+            apiHost = apiHost.substring(0, apiHost.length() - 1);
+        }
+        
+        String url = apiHost + "/api/v1/services/rerank/text-rerank/text-rerank";
         Request httpRequest = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + chatModelVo.getApiKey())
@@ -109,9 +131,18 @@ public class AliBaiLianRerankModelService implements RerankModelService {
     }
 
     /**
-     * 解析响应
+     * 解析响应 (无缝兼容阿里 Native 原生输出格式与 OpenAI 兼容格式)
      */
     private AliBaiLianRerankResponse parseResponse(String responseBody) throws IOException {
+        com.fasterxml.jackson.databind.JsonNode root = objectMapper.readTree(responseBody);
+        if (root.has("output")) {
+            com.fasterxml.jackson.databind.JsonNode outputNode = root.get("output");
+            com.fasterxml.jackson.databind.node.ObjectNode modifiedRoot = root.deepCopy();
+            if (outputNode.has("results")) {
+                modifiedRoot.set("results", outputNode.get("results"));
+            }
+            return objectMapper.treeToValue(modifiedRoot, AliBaiLianRerankResponse.class);
+        }
         return objectMapper.readValue(responseBody, AliBaiLianRerankResponse.class);
     }
 }
