@@ -28,6 +28,7 @@ import dev.langchain4j.rag.AugmentationRequest;
 import dev.langchain4j.rag.AugmentationResult;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
+import org.ruoyi.common.tenant.helper.TenantHelper;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.Query;
 import lombok.RequiredArgsConstructor;
