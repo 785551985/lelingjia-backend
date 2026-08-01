@@ -33,6 +33,7 @@ public class DeepseekServiceImpl implements AbstractChatService {
             .baseUrl(chatModelVo.getApiHost())
             .apiKey(chatModelVo.getApiKey())
             .modelName(chatModelVo.getModelName())
+            .timeout(java.time.Duration.ofMinutes(10))
             .listeners(List.of(new MyChatModelListener()))
             .returnThinking(chatRequest.getEnableThinking())
             .build();
