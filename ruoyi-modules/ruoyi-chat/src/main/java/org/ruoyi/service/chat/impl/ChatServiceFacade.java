@@ -548,30 +548,35 @@ public class ChatServiceFacade implements IChatService {
      * 兜底 MCP 工具装配（无智能体时使用，保留原有 3 个硬编码客户端逻辑）
      */
     private ToolProvider buildDefaultMcpToolProvider(Long userId) {
-        String npxCommand = resolveNpxCommand();
-        McpTransport playwrightTransport = new StdioMcpTransport.Builder()
-            .command(List.of(npxCommand, "-y", "@playwright/mcp@latest"))
-            .logEvents(true)
-            .build();
-        McpClient playwrightMcpClient = new DefaultMcpClient.Builder()
-            .transport(playwrightTransport)
-            .listener(new MyMcpClientListener(userId))
-            .build();
+        try {
+            String npxCommand = resolveNpxCommand();
+            McpTransport playwrightTransport = new StdioMcpTransport.Builder()
+                .command(List.of(npxCommand, "-y", "@playwright/mcp@latest"))
+                .logEvents(true)
+                .build();
+            McpClient playwrightMcpClient = new DefaultMcpClient.Builder()
+                .transport(playwrightTransport)
+                .listener(new MyMcpClientListener(userId))
+                .build();
 
-        String userDir = System.getProperty("user.dir");
-        McpTransport filesystemTransport = new StdioMcpTransport.Builder()
-            .command(List.of(npxCommand, "-y",
-                "@modelcontextprotocol/server-filesystem", userDir))
-            .logEvents(true)
-            .build();
-        McpClient filesystemMcpClient = new DefaultMcpClient.Builder()
-            .transport(filesystemTransport)
-            .listener(new MyMcpClientListener(userId))
-            .build();
+            String userDir = System.getProperty("user.dir");
+            McpTransport filesystemTransport = new StdioMcpTransport.Builder()
+                .command(List.of(npxCommand, "-y",
+                    "@modelcontextprotocol/server-filesystem", userDir))
+                .logEvents(true)
+                .build();
+            McpClient filesystemMcpClient = new DefaultMcpClient.Builder()
+                .transport(filesystemTransport)
+                .listener(new MyMcpClientListener(userId))
+                .build();
 
-        return McpToolProvider.builder()
-            .mcpClients(List.of(playwrightMcpClient, filesystemMcpClient))
-            .build();
+            return McpToolProvider.builder()
+                .mcpClients(List.of(playwrightMcpClient, filesystemMcpClient))
+                .build();
+        } catch (Exception e) {
+            log.warn("装配 MCP 默认工具服务失败，自动忽略 MCP 扩展: err={}", e.getMessage());
+            return null;
+        }
     }
 
     private String resolveNpxCommand() {
