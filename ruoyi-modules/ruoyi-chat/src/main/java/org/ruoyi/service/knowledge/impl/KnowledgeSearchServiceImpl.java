@@ -121,6 +121,9 @@ public class KnowledgeSearchServiceImpl {
      * </select>
      */
     @Autowired
+    private org.ruoyi.service.knowledge.IKnowledgeInfoService knowledgeInfoService;
+
+    @Autowired
     private org.ruoyi.service.retrieval.KnowledgeRetrievalService knowledgeRetrievalService;
 
     private List<ChunkMatch> queryVectorAndDbFilter(SearchRequest request, float[] queryVector) {
@@ -130,15 +133,26 @@ public class KnowledgeSearchServiceImpl {
             return Collections.emptyList();
         }
 
+        // 优先使用知识库配置的相似度阈值，若未配置则采用 0.50 作为基准标准阈值（防止打招呼短语被 0.20 误召回）
+        double threshold = 0.50;
+        try {
+            org.ruoyi.domain.vo.knowledge.KnowledgeInfoVo kbVo = knowledgeInfoService.queryById(request.getKbId());
+            if (kbVo != null && kbVo.getSimilarityThreshold() != null) {
+                threshold = kbVo.getSimilarityThreshold();
+            }
+        } catch (Exception e) {
+            log.warn("获取知识库阈值配置失败，使用默认阈值 0.50: {}", e.getMessage());
+        }
+
         org.ruoyi.domain.bo.vector.QueryVectorBo queryBo = new org.ruoyi.domain.bo.vector.QueryVectorBo();
         queryBo.setKid(String.valueOf(request.getKbId()));
         queryBo.setQuery(request.getQuery());
         queryBo.setMaxResults(10);
-        queryBo.setSimilarityThreshold(0.2); // 召回相似度阈值
+        queryBo.setSimilarityThreshold(threshold); // 动态使用数据库配置的相似度阈值
 
         List<org.ruoyi.domain.vo.knowledge.KnowledgeRetrievalVo> retrievalVos = knowledgeRetrievalService.retrieve(queryBo);
         if (retrievalVos == null || retrievalVos.isEmpty()) {
-            log.warn("未检索到任何符合条件的切片数据，kbId: {}", request.getKbId());
+            log.warn("未检索到任何符合条件的切片数据 (阈值: {}), kbId: {}", threshold, request.getKbId());
             return Collections.emptyList();
         }
 
