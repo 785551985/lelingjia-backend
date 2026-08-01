@@ -638,43 +638,8 @@ public class ChatServiceFacade implements IChatService {
                 return new RagAugmentResult(content, Collections.emptyList());
             }
 
-            // ★ 强相关性精筛：
-            // 1. 寻找全量切片中的最高得分 maxScore
-            double maxScore = 0.0;
-            for (Content c : contents) {
-                if (c.textSegment() != null && c.textSegment().metadata() != null) {
-                    String scoreStr = c.textSegment().metadata().getString("score");
-                    if (StringUtils.isNotBlank(scoreStr)) {
-                        try {
-                            double sc = Double.parseDouble(scoreStr);
-                            if (sc > maxScore) maxScore = sc;
-                        } catch (Exception ignored) {}
-                    }
-                }
-            }
-
-            // 基础绝对门槛设为 0.28 (保障“王明”、“王明简介”等短词/人名检索不被误拦)
-            if (maxScore < 0.28) {
-                log.info("意图分析：最高相关度得分 ({}) 低于 0.28 基础阈值，跳过知识库注入与来源挂载: {}", maxScore, content);
-                return new RagAugmentResult(content, Collections.emptyList());
-            }
-
-            // 2. 只有绝对分值 >= 0.28 并且 与最高分差距在 0.08 范围内的切片，才判定为真正强相关业务切片！
-            // 彻底剔除得分断崖下降的无关偏门混入文档 (如搜“专家”时误混入的“流量洞察.xlsx”或“报价单.md”)
-            double scoreThreshold = Math.max(0.28, maxScore - 0.08);
-            List<Content> validContents = new ArrayList<>();
-            for (Content c : contents) {
-                if (c.textSegment() != null && c.textSegment().metadata() != null) {
-                    String scoreStr = c.textSegment().metadata().getString("score");
-                    double score = 0.0;
-                    if (StringUtils.isNotBlank(scoreStr)) {
-                        try { score = Double.parseDouble(scoreStr); } catch (Exception ignored) {}
-                    }
-                    if (score >= scoreThreshold) {
-                        validContents.add(c);
-                    }
-                }
-            }
+            // 1. 无损保留所有相关检索切片，确保知识库 100% 真实发挥 RAG 效果
+            List<Content> validContents = contents;
 
             StringBuilder sb = new StringBuilder("你是一位严谨、真实、专业的企业智能助手。\n");
             sb.append("请使用自然、友好、有温度的语气回答用户。\n\n");
